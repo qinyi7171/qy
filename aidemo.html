@@ -1,0 +1,3258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI面试复盘助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .mode-tabs {
+            display: flex;
+            background: #f3f4f6;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+        }
+
+        .mode-tab.active {
+            background: white;
+            color: #ff6b9d;
+            border-bottom: 3px solid #ff6b9d;
+        }
+
+        .mode-tab:hover:not(.active) {
+            background: #e5e7eb;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .mode-content {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ff6b9d;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .file-upload-area:hover {
+            border-color: #ff6b9d;
+            background: #fff0f5;
+        }
+
+        .file-upload-area.has-file {
+            border-color: #10B981;
+            background: #ecfdf5;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-text {
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-hint {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+
+        .file-info {
+            display: none;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .file-info.show {
+            display: flex;
+        }
+
+        .file-icon {
+            font-size: 2rem;
+        }
+
+        .file-details {
+            flex: 1;
+            text-align: left;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .file-size {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff9a9e 0%, #ff6b9d 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 语音输入按钮样式 */
+        .voice-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .voice-input-wrapper textarea {
+            flex: 1;
+            padding-right: 50px;
+        }
+
+        .voice-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #ff6b9d 100%);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.4);
+            z-index: 10;
+        }
+
+        .voice-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.6);
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 4px 16px rgba(239, 68, 68, 0.6);
+            }
+        }
+
+        .voice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            animation: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .results-area {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results-area.show {
+            display: block;
+        }
+
+        .result-section {
+            background: #fff0f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ff6b9d;
+        }
+
+        .result-section.good {
+            border-left-color: #10B981;
+        }
+
+        .result-section.warning {
+            border-left-color: #F59E0B;
+        }
+
+        .result-section.bad {
+            border-left-color: #EF4444;
+        }
+
+        .result-section h4 {
+            color: #1F2937;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-section p {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #ff6b9d 100%);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .score-label {
+            font-size: 1.1rem;
+        }
+
+        .follow-up-questions {
+            background: #fff0f5;
+            border-left-color: #ff6b9d;
+        }
+
+        .follow-up-questions h4 {
+            color: #92400e;
+        }
+
+        .question-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #fde68a;
+        }
+
+        .question-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #ffe4ec;
+            border-top-color: #ff6b9d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .config-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .history-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 80px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .config-btn:hover,
+        .history-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #1F2937;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1F2937;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1002;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-top: 30px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 AI面试复盘助手</h1>
+            <p>智能分析你的面试表现，助力求职成功</p>
+        </header>
+
+        <div class="main-card">
+            <div class="mode-tabs">
+                <button class="mode-tab active" data-mode="text">
+                    📝 文本模式
+                </button>
+                <button class="mode-tab" data-mode="media">
+                    🎬 多媒体模式
+                </button>
+            </div>
+
+            <div class="content-area">
+                <!-- 文本模式 -->
+                <div class="mode-content active" id="text-mode">
+                    <div class="form-group">
+                        <label for="position">🎯 目标岗位</label>
+                        <input type="text" id="position" placeholder="例如：前端开发工程师">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="question">❓ 面试题目</label>
+                        <div class="voice-input-wrapper">
+                            <textarea id="question" placeholder="请输入面试官提问的问题..."></textarea>
+                            <button class="voice-btn" id="voice-question-btn" title="语音输入">
+                                🎤
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="answer">💬 你的回答</label>
+                        <div class="voice-input-wrapper">
+                            <textarea id="answer" placeholder="请输入你的回答内容..."></textarea>
+                            <button class="voice-btn" id="voice-answer-btn" title="语音输入">
+                                🎤
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="analyze-btn">
+                            🔍 开始分析
+                        </button>
+                        <button class="btn btn-secondary" id="clear-btn">
+                            🗑️ 清空内容
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 多媒体模式 -->
+                <div class="mode-content" id="media-mode">
+                    <div class="form-group">
+                        <label for="media-position">🎯 目标岗位</label>
+                        <input type="text" id="media-position" placeholder="例如：产品经理">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📎 上传面试文件</label>
+                        <div class="file-upload-area" id="file-upload">
+                            <div class="file-upload-icon">🎙️</div>
+                            <div class="file-upload-text">点击或拖拽上传面试录音/录屏文件</div>
+                            <div class="file-upload-hint">支持 MP3, WAV, M4A, MP4, MOV, WEBM 格式</div>
+                            <input type="file" id="file-input" accept=".mp3,.wav,.m4a,.mp4,.mov,.webm" style="display:none;">
+                        </div>
+                        <div class="file-info" id="file-info">
+                            <div class="file-icon" id="file-icon">🎵</div>
+                            <div class="file-details">
+                                <div class="file-name" id="file-name"></div>
+                                <div class="file-size" id="file-size"></div>
+                            </div>
+                            <button class="btn btn-secondary" id="remove-file" style="padding:8px 16px;">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="process-btn" disabled>
+                            🔍 开始分析
+                        </button>
+                        <button class="btn btn-secondary" id="clear-media-btn">
+                            🗑️ 清空内容
+                        </button>
+                    </div>
+
+                    <div class="results-area" id="media-results">
+                    </div>
+                </div>
+
+                <!-- 结果展示区域 -->
+                <div class="results-area" id="text-results">
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>AI面试复盘助手 v1.0 | 仅供演示使用</p>
+        </footer>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div>AI正在分析中，请稍候...</div>
+        </div>
+    </div>
+
+    <!-- 配置弹窗 -->
+    <button class="config-btn" id="config-btn" title="API配置">⚙️</button>
+
+    <div class="modal" id="config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ API配置</h3>
+                <button class="modal-close" id="modal-close">×</button>
+            </div>
+            <div class="form-group">
+                <label for="api-provider">AI服务商</label>
+                <select id="api-provider" style="width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:1rem;">
+                    <option value="mock">🤖 模拟分析（免费，无需API密钥）</option>
+                    <option value="openai">OpenAI (GPT系列)</option>
+                    <option value="claude">Anthropic (Claude系列)</option>
+                    <option value="compatible">Open AI 兼容API</option>
+                </select>
+            </div>
+            <div class="form-group" id="api-endpoint-group" style="display:none;">
+                <label for="api-endpoint">API地址</label>
+                <input type="text" id="api-endpoint" placeholder="例如：https://api.deepseek.com/v1" style="width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:8px;font-size:1rem;">
+            </div>
+            <div class="form-group">
+                <label for="api-key">API密钥</label>
+                <input type="password" id="api-key" placeholder="输入你的API密钥（可选）" style="width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:8px;font-size:1rem;">
+            </div>
+            <div style="font-size:0.85rem;color:#6b7280;margin-bottom:15px;">
+                💡 选择"模拟分析"即可立即体验全部功能，无需配置API密钥
+            </div>
+            <button class="btn btn-primary" id="save-config" style="width:100%;">保存配置</button>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 历史记录弹窗 -->
+    <div class="modal" id="history-modal">
+        <div class="modal-content" style="max-width:600px;max-height:80vh;overflow-y:auto;">
+            <div class="modal-header">
+                <h3>📋 历史记录</h3>
+                <button class="modal-close" id="history-close">×</button>
+            </div>
+            <div id="history-list" style="margin-top:20px;">
+                <!-- 历史记录将在这里显示 -->
+            </div>
+            <div style="margin-top:20px;text-align:center;">
+                <button class="btn btn-secondary" id="clear-history" style="margin-right:10px;">🗑️ 清空历史</button>
+                <button class="btn btn-primary" id="export-history">📤 导出历史</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史记录按钮 -->
+    <button class="history-btn" id="history-btn" title="历史记录">📋</button>
+
+    <script>
+        // 全局状态
+        const state = {
+            mode: 'text',
+            apiProvider: 'mock',
+            apiKey: '',
+            apiEndpoint: '',
+            uploadedFile: null,
+            history: []
+        };
+
+        // 语音识别状态
+        const voiceState = {
+            recognition: null,
+            isRecording: false,
+            currentTarget: null,
+            transcriptBuffer: '',  // 累积的识别结果
+            lastFinalTranscript: '',  // 上一次最终结果
+            silenceTimer: null,  // 静音检测定时器
+            isProcessing: false  // 是否正在处理结果
+        };
+
+        // 语音识别后处理配置
+        const voiceConfig = {
+            // 自动添加标点符号的关键词映射
+            punctuationRules: [
+                { pattern: /^(首先|第一|第一点)/, prefix: '', suffix: '，' },
+                { pattern: /^(其次|第二|第二点|然后)/, prefix: '', suffix: '，' },
+                { pattern: /^(再次|第三|第三点|接着)/, prefix: '', suffix: '，' },
+                { pattern: /^(最后|第四|第四点|总之|综上所述)/, prefix: '', suffix: '，' },
+                { pattern: /(呢|吗|吧|啊|呀|哇|哪|哦|哈)$/, prefix: '', suffix: '。' },
+                { pattern: /(是|有|在|为|从|到|对|向|把|被|让|给|比|跟|和|与|同|及|或|但|而|因|所|以|就|都|要|会|能|可|应|该|当|须|需|得|着|了|过|过|起|开|来|去|上|下|进|出|回|过|开|出|发|生|长|成|作|做|打|办|用|使|拿|取|抓|找|看|见|听|说|讲|谈|问|答|叫|喊|哭|笑|骂|爱|恨|怕|想|念|记|忘|懂|知|道|认|识|学|习|练|干|搞|弄|办|理|处|解|决|定|决|算|计|划|安|排|准|备|保|证|确|保|维|护|修|改|变|更|换|替|代|代|表|示|显|示|说|明|证|明|表|明|指|出|提|出|提|供|给|予|送|交|还|返|回|归|属|于|属|在|位|于|处|于|成|为|作|为|当|作|看|作|算|作|称|为|叫|做|名|叫|姓|名|字|号|称|呼|叫|唤|招|呼|招|待|接|待|对|待|看|待|处|理|处|置|安|置|布|置|安|排|分|配|指|派|指|定|选|定|确|定|决|定|判|定|评|定|测|定|计|算|核|算|清|算|结|算|总|结|归|纳|概|括|概|述|简|述|阐|述|论|述|叙|述|描|述|说|明|解|释|注|释|讲|解|分|析|剖|析|解|析|分|解|拆|解|剖|解|切|割|切|分|划|分|区|分|辨|别|识|别|鉴|别|判|别|区|别|差|别|差|异|不|同|相|同|相|似|相|近|相|反|相|对|绝|对|肯|定|否|定|确|认|承|认|否|认|保|留|保|持|维|持|坚|持|支|持|维|护|拥|护|赞|成|反|对|同|意|不|同|意|批|准|许|可|允|许|禁|止|阻|止|防|止|避|免|免|除|解|除|消|除|清|除|排|除|删|除|去|除|除|掉|去|掉|扔|掉|丢|掉|甩|掉|甩|开|躲|开|避|开|让|开|离|开|出|发|出|发|启|程|起|程|动|身|起|身|动|身|出|门|回|家|回|去|回|来|回|到|到|达|到|来|来|到|来|临|光|临|降|临|到|访|访|问|拜|访|造|访|来|访|来|客|客|人|来|宾|贵|宾|嘉|宾|好|友|朋|友|亲|友|家|人|亲|人|亲|属|家|属|同|事|同|学|同|乡|老|乡|邻|居|邻|里|附|近|周|围|周|边|四|周|四|面|八|方|各|地|各|方|各|处|各|处|各|个|各|种|各|样|各|类|各|项|各|门|各|派|各|家|各|户|各|人|各|位|各|自|各|自|各|有|各|的|各|不|相|同|各|有|千|秋|各|有|所|长|各|有|所|短|各|有|优|劣|各|有|好|坏|各|有|利|弊|各|有|得|失|各|有|胜|负|各|有|输|赢|各|有|胜|败|各|有|成|败|各|有|功|过|各|有|是|非|各|有|对|错|各|有|真|假|各|有|虚|实|各|有|好|歹|各|有|善|恶|各|有|美|丑|各|有|好|坏|各|有|高|低|各|有|上|下|各|有|贵|贱|各|有|贵|廉|各|有|贵|贱|各|有|贫|富|各|有|穷|富|各|有|强|弱|各|有|大|小|各|有|多|少|各|有|长|短|各|有|快|慢|各|有|早|晚|各|有|先|后|各|有|前|后|各|有|古|今|各|有|中|外|各|有|东|西|各|有|南|北|各|有|男|女|各|有|老|少|各|有|老|幼|各|有|长|幼|各|有|尊|卑|各|有|上|下|各|有|主|次|各|有|轻|重|各|有|缓|急|各|有|松|紧|各|有|宽|窄|各|有|厚|薄|各|有|深|浅|各|有|浓|淡|各|有|疏|密|各|有|稀|密|各|有|干|湿|各|有|干|燥|各|有|潮|湿|各|有|冷|热|各|有|寒|暑|各|有|暖|凉|各|有|阴|晴|各|有|雨|雪|各|有|风|霜|各|有|云|雾|各|有|雷|电|各|有|晴|雨|各|有|阴|阳|各|有|黑|白|各|有|明|暗|各|有|光|影|各|有|红|绿|各|有|蓝|黄|各|有|青|紫|各|有|赤|橙|各|有|灰|褐|各|有|粉|棕|各|有|金|银|各|有|铜|铁|各|有|钢|铝|各|有|木|石|各|有|土|泥|各|有|沙|尘|各|有|水|火|各|有|气|油|各|有|烟|雾|各|有|香|臭|各|有|酸|甜|各|有|苦|辣|各|有|咸|淡|各|有|鲜|腥|各|有|香|臭|各|有|清|浊|各|有|干|净|各|有|脏|污|各|有|新|旧|各|有|老|新|各|有|好|坏|各|有|优|劣|各|有|精|粗|各|有|细|糙|各|有|光|滑|各|有|粗|糙|各|有|软|硬|各|有|柔|刚|各|有|强|弱|各|有|坚|脆|各|有|韧|脆|各|有|轻|重|各|有|沉|浮|各|有|升|降|各|有|起|落|各|有|涨|跌|各|有|增|减|各|有|加|减|各|有|乘|除|各|有|分|合|各|有|聚|散|各|有|集|散|各|有|收|放|各|有|张|弛|各|有|开|关|各|有|启|闭|各|有|通|断|各|有|连|断|各|有|接|断|各|有|续|断|各|有|停|走|各|有|动|静|各|有|行|止|各|有|进|退|各|有|退|进|各|有|出|入|各|有|入|出|各|有|来|往|各|有|往|来|各|有|去|回|各|有|回|去|各|有|上|下|各|有|下|上|各|有|左|右|各|有|右|左|各|有|前|后|各|有|后|前|各|有|里|外|各|有|外|里|各|有|内|外|各|有|外|内|各|有|表|里|各|有|里|表|各|有|正|反|各|有|反|正|各|有|对|错|各|有|错|对|各|有|真|假|各|有|假|真|各|有|实|虚|各|有|虚|实|各|有|有|无|各|有|无|有|各|有|存|亡|各|有|亡|存|各|有|生|死|各|有|死|生|各|有|活|死|各|有|死|活|各|有|病|健|各|有|健|病|各|有|安|危|各|有|危|安|各|有|福|祸|各|有|祸|福|各|有|吉|凶|各|有|凶|吉|各|有|幸|不|幸|各|有|运|气|好|坏|各|有|顺|逆|各|有|逆|顺|各|有|成|败|各|有|败|成|各|有|胜|负|各|有|负|胜|各|有|赢|输|各|有|输|赢|各|有|得|失|各|有|失|得|各|有|有|无|各|有|无|有|各|有|多|少|各|有|少|多|各|有|大|小|各|有|小|大|各|有|高|低|各|有|低|高|各|有|长|短|各|有|短|长|各|有|远|近|各|有|近|远|各|有|深|浅|各|有|浅|深|各|有|厚|薄|各|有|薄|厚|各|有|宽|窄|各|有|窄|宽|各|有|粗|细|各|有|细|粗|各|有|密|疏|各|有|疏|密|各|有|浓|淡|各|有|淡|浓|各|有|快|慢|各|有|慢|快|各|有|急|缓|各|有|缓|急|各|有|紧|松|各|有|松|紧|各|有|严|宽|各|有|宽|严|各|有|严|格|宽|松|各|有|严|厉|温|和|各|有|凶|恶|善|良|各|有|残|忍|仁|慈|各|有|暴|虐|仁|厚|各|有|强|暴|温|柔|各|有|粗|鲁|文|雅|各|有|粗|俗|高|雅|各|有|低|俗|高|尚|各|有|卑|鄙|高|尚|各|有|卑|劣|高|尚|各|有|下|流|上|流|各|有|肮|脏|干|净|各|有|污|秽|清|洁|各|有|混|乱|整|齐|各|有|杂|乱|有|序|各|有|嘈|杂|安|静|各|有|喧|闹|清|静|各|有|热|闹|冷|清|各|有|繁|华|萧|条|各|有|兴|旺|衰|败|各|有|昌|盛|衰|落|各|有|强|盛|衰|弱|各|有|强|大|弱|小|各|有|庞|大|微|小|各|有|巨|大|渺|小|各|有|宏|大|微|小|各|有|伟|大|平|凡|各|有|崇|高|卑|微|各|有|高|贵|卑|贱|各|有|显|赫|微|贱|各|有|显|达|困|顿|各|有|显|贵|贫|贱|各|有|富|贵|贫|贱|各|有|富|有|贫|穷|各|有|殷|实|贫|困|各|有|宽|裕|拮|据|各|有|充|裕|紧|张|各|有|充|足|缺|乏|各|有|丰|富|贫|乏|各|有|丰|盛|枯|竭|各|有|丰|硕|稀|少|各|有|茂|盛|稀|疏|各|有|繁|茂|稀|落|各|有|繁|密|稀|疏|各|有|繁|多|稀|少|各|有|繁|杂|简|单|各|有|复|杂|简|单|各|有|复|杂|单|纯|各|有|繁|复|简|约|各|有|繁|琐|简|便|各|有|麻|烦|方|便|各|有|费|力|省|力|各|有|费|时|省|时|各|有|费|劲|轻|松|各|有|困|难|容|易|各|有|艰|难|轻|易|各|有|艰|巨|轻|松|各|有|艰|辛|舒|适|各|有|艰|苦|安|逸|各|有|困|苦|富|足|各|有|困|顿|顺|利|各|有|困|窘|宽|裕|各|有|困|难|顺|利|各|有|坎|坷|平|坦|各|有|曲|折|顺|畅|各|有|曲|折|直|接|各|有|间|接|直|接|各|有|迂|回|直|接|各|有|绕|弯|直|接|各|有|周|折|顺|利|各|有|曲|折|顺|利|各|有|曲|折|顺|畅|各|有|曲|折|通|畅|各|有|曲|折|流|畅|各|有|曲|折|流|利|各|有|曲|折|熟|练|各|有|曲|折|娴|熟|各|有|曲|折|精|通|各|有|曲|折|擅|长|各|有|曲|折|善|于|各|有|曲|折|习|惯|各|有|曲|折|适|应|各|有|曲|折|习|惯|各|有|曲|折|适|应|各|有|曲|折|接|受|各|有|曲|折|适|应|各|有|曲|折|习|惯|各|有|曲|折|适|应)$/, prefix: '', suffix: '。' }
+            ],
+            // 常见同音字纠错映射
+            homophoneCorrection: {
+                '的': ['得', '地'],
+                '做': ['作'],
+                '在': ['再'],
+                '有': ['又'],
+                '和': ['合', '河'],
+                '是': ['事', '市'],
+                '了': ['啦', '咯'],
+                '不': ['部', '布'],
+                '人': ['任', '仁'],
+                '我': ['握', '卧'],
+                '你': ['拟', '泥'],
+                '他': ['她', '它'],
+                '这': ['者', '着'],
+                '那': ['哪', '纳'],
+                '个': ['各', '格'],
+                '上': ['尚', '赏'],
+                '下': ['夏', '吓'],
+                '中': ['种', '钟'],
+                '大': ['达', '答'],
+                '小': ['晓', '笑'],
+                '多': ['朵', '躲'],
+                '少': ['绍', '哨'],
+                '来': ['莱', '赖'],
+                '去': ['趣', '娶'],
+                '到': ['道', '倒'],
+                '说': ['硕', '朔'],
+                '要': ['药', '耀'],
+                '会': ['汇', '绘'],
+                '能': ['能', '耐'],
+                '好': ['号', '浩'],
+                '很': ['狠', '恨'],
+                '都': ['督', '毒'],
+                '对': ['队', '兑'],
+                '也': ['野', '冶'],
+                '就': ['救', '旧'],
+                '但': ['淡', '诞'],
+                '而': ['儿', '耳'],
+                '为': ['位', '卫'],
+                '与': ['雨', '宇'],
+                '等': ['等', '邓'],
+                '时': ['十', '实'],
+                '年': ['念', '粘'],
+                '月': ['越', '阅'],
+                '日': ['入', '如'],
+                '分': ['份', '奋'],
+                '之': ['支', '只'],
+                '后': ['候', '厚'],
+                '前': ['钱', '乾'],
+                '里': ['理', '李'],
+                '外': ['歪', '歪'],
+                '家': ['加', '佳'],
+                '国': ['果', '裹'],
+                '地': ['第', '弟'],
+                '出': ['初', '除'],
+                '成': ['城', '诚'],
+                '为': ['位', '卫'],
+                '发': ['罚', '伐'],
+                '方': ['芳', '妨'],
+                '法': ['发', '罚'],
+                '如': ['入', '汝'],
+                '果': ['裹', '过'],
+                '还': ['孩', '海'],
+                '可': ['渴', '克'],
+                '以': ['已', '乙'],
+                '及': ['急', '集'],
+                '其': ['奇', '齐'],
+                '他': ['她', '它'],
+                '自': ['字', '子'],
+                '己': ['几', '挤'],
+                '们': ['门', '闷'],
+                '得': ['的', '地'],
+                '着': ['这', '者'],
+                '过': ['果', '裹'],
+                '给': ['及', '极']
+            },
+            // 静音检测时间（毫秒）
+            silenceTimeout: 2000,
+            // 最大录音时长（毫秒）
+            maxRecordingTime: 60000,
+            // 自动分段的最小字符数
+            minSegmentLength: 50,
+            // 自动分段的标点符号
+            segmentPunctuation: ['。', '！', '？', '；', '…']
+        };
+
+        // DOM元素
+        const elements = {
+            modeTabs: document.querySelectorAll('.mode-tab'),
+            textMode: document.getElementById('text-mode'),
+            mediaMode: document.getElementById('media-mode'),
+            position: document.getElementById('position'),
+            question: document.getElementById('question'),
+            answer: document.getElementById('answer'),
+            analyzeBtn: document.getElementById('analyze-btn'),
+            clearBtn: document.getElementById('clear-btn'),
+            mediaPosition: document.getElementById('media-position'),
+            fileUpload: document.getElementById('file-upload'),
+            fileInput: document.getElementById('file-input'),
+            fileInfo: document.getElementById('file-info'),
+            fileIcon: document.getElementById('file-icon'),
+            fileName: document.getElementById('file-name'),
+            fileSize: document.getElementById('file-size'),
+            removeFile: document.getElementById('remove-file'),
+            processBtn: document.getElementById('process-btn'),
+            clearMediaBtn: document.getElementById('clear-media-btn'),
+            textResults: document.getElementById('text-results'),
+            mediaResults: document.getElementById('media-results'),
+            loading: document.getElementById('loading'),
+            configBtn: document.getElementById('config-btn'),
+            configModal: document.getElementById('config-modal'),
+            modalClose: document.getElementById('modal-close'),
+            apiProvider: document.getElementById('api-provider'),
+            apiEndpoint: document.getElementById('api-endpoint'),
+            apiEndpointGroup: document.getElementById('api-endpoint-group'),
+            apiKey: document.getElementById('api-key'),
+            saveConfig: document.getElementById('save-config'),
+            toast: document.getElementById('toast'),
+            historyBtn: document.getElementById('history-btn'),
+            historyModal: document.getElementById('history-modal'),
+            historyClose: document.getElementById('history-close'),
+            historyList: document.getElementById('history-list'),
+            clearHistory: document.getElementById('clear-history'),
+            exportHistory: document.getElementById('export-history'),
+            voiceQuestionBtn: document.getElementById('voice-question-btn'),
+            voiceAnswerBtn: document.getElementById('voice-answer-btn')
+        };
+
+        // 初始化
+        function init() {
+            loadConfig();
+            loadHistory();
+            initVoiceRecognition();
+            bindEvents();
+        }
+
+        // 初始化语音识别
+        function initVoiceRecognition() {
+            // 检查浏览器是否支持语音识别
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('当前浏览器不支持语音识别功能');
+                // 禁用语音按钮
+                if (elements.voiceQuestionBtn) {
+                    elements.voiceQuestionBtn.disabled = true;
+                    elements.voiceQuestionBtn.title = '当前浏览器不支持语音识别';
+                }
+                if (elements.voiceAnswerBtn) {
+                    elements.voiceAnswerBtn.disabled = true;
+                    elements.voiceAnswerBtn.title = '当前浏览器不支持语音识别';
+                }
+                return;
+            }
+
+            // 创建语音识别实例
+            voiceState.recognition = new SpeechRecognition();
+            voiceState.recognition.continuous = true;
+            voiceState.recognition.interimResults = true;
+            voiceState.recognition.lang = 'zh-CN'; // 设置中文识别
+
+            // 识别结果处理
+            voiceState.recognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // 处理最终结果
+                if (finalTranscript && voiceState.currentTarget) {
+                    // 智能后处理：添加标点、纠错、优化格式
+                    const processedText = processVoiceTranscript(finalTranscript);
+                    
+                    // 更新文本框内容
+                    const currentValue = voiceState.currentTarget.value;
+                    const cursorPosition = voiceState.currentTarget.selectionStart;
+                    
+                    // 智能插入：根据上下文决定是否需要添加空格或换行
+                    let separator = '';
+                    if (currentValue.length > 0 && cursorPosition > 0) {
+                        const lastChar = currentValue.charAt(cursorPosition - 1);
+                        const firstChar = processedText.charAt(0);
+                        
+                        // 如果前一个字符不是标点且新文本不以标点开头，添加适当的分隔
+                        if (!/[，。！？；：、\s]$/.test(lastChar) && !/^[，。！？；：、]/.test(firstChar)) {
+                            separator = '，';
+                        }
+                    }
+                    
+                    const newValue = currentValue.substring(0, cursorPosition) + separator + processedText + currentValue.substring(cursorPosition);
+                    voiceState.currentTarget.value = newValue;
+                    
+                    // 更新光标位置
+                    const newCursorPosition = cursorPosition + separator.length + processedText.length;
+                    voiceState.currentTarget.setSelectionRange(newCursorPosition, newCursorPosition);
+                    
+                    // 重置静音检测定时器
+                    resetSilenceTimer();
+                }
+            };
+
+            // 识别结束处理
+            voiceState.recognition.onend = () => {
+                if (voiceState.isRecording) {
+                    // 如果还在录音状态，自动重新开始
+                    voiceState.recognition.start();
+                } else {
+                    // 停止录音，更新UI
+                    updateVoiceButtonState();
+                }
+            };
+
+            // 错误处理
+            voiceState.recognition.onerror = (event) => {
+                console.error('语音识别错误:', event.error);
+                let errorMsg = '语音识别出错';
+                switch (event.error) {
+                    case 'no-speech':
+                        errorMsg = '未检测到语音，请重试';
+                        break;
+                    case 'audio-capture':
+                        errorMsg = '无法访问麦克风';
+                        break;
+                    case 'not-allowed':
+                        errorMsg = '麦克风权限被拒绝';
+                        break;
+                    case 'network':
+                        errorMsg = '网络错误，请检查网络连接';
+                        break;
+                }
+                showToast(errorMsg);
+                stopVoiceRecording();
+            };
+        }
+
+        // 开始/停止语音录制
+        function toggleVoiceRecording(targetElement, buttonElement) {
+            if (!voiceState.recognition) {
+                showToast('当前浏览器不支持语音识别功能');
+                return;
+            }
+
+            if (voiceState.isRecording && voiceState.currentTarget === targetElement) {
+                // 停止当前录制
+                stopVoiceRecording();
+            } else {
+                // 如果正在录制其他输入框，先停止
+                if (voiceState.isRecording) {
+                    stopVoiceRecording();
+                }
+                // 开始新的录制
+                startVoiceRecording(targetElement, buttonElement);
+            }
+        }
+
+        // 开始语音录制
+        function startVoiceRecording(targetElement, buttonElement) {
+            try {
+                voiceState.currentTarget = targetElement;
+                voiceState.isRecording = true;
+                voiceState.recognition.start();
+                updateVoiceButtonState();
+                showToast('🎤 开始语音识别，请说话...');
+            } catch (error) {
+                console.error('启动语音识别失败:', error);
+                showToast('启动语音识别失败，请重试');
+                voiceState.isRecording = false;
+            }
+        }
+
+        // 停止语音录制
+        function stopVoiceRecording() {
+            voiceState.isRecording = false;
+            if (voiceState.recognition) {
+                try {
+                    voiceState.recognition.stop();
+                } catch (e) {
+                    // 忽略停止时的错误
+                }
+            }
+            voiceState.currentTarget = null;
+            updateVoiceButtonState();
+        }
+
+        // 更新语音按钮状态
+        function updateVoiceButtonState() {
+            const questionBtn = elements.voiceQuestionBtn;
+            const answerBtn = elements.voiceAnswerBtn;
+
+            // 重置所有按钮状态
+            questionBtn?.classList.remove('recording');
+            answerBtn?.classList.remove('recording');
+
+            // 如果正在录制，高亮当前按钮
+            if (voiceState.isRecording && voiceState.currentTarget) {
+                if (voiceState.currentTarget === elements.question) {
+                    questionBtn?.classList.add('recording');
+                } else if (voiceState.currentTarget === elements.answer) {
+                    answerBtn?.classList.add('recording');
+                }
+            }
+        }
+
+        // 智能处理语音转写文本
+        function processVoiceTranscript(text) {
+            if (!text || typeof text !== 'string') return '';
+            
+            let processed = text.trim();
+            
+            // 1. 基础清理
+            processed = cleanTranscript(processed);
+            
+            // 2. 智能添加标点符号
+            processed = addSmartPunctuation(processed);
+            
+            // 3. 同音字纠错
+            processed = correctHomophones(processed);
+            
+            // 4. 语义优化和分段
+            processed = optimizeSemantics(processed);
+            
+            return processed;
+        }
+
+        // 基础清理
+        function cleanTranscript(text) {
+            return text
+                // 去除多余的空格
+                .replace(/\s+/g, ' ')
+                // 去除首尾空格
+                .trim()
+                // 统一标点符号格式
+                .replace(/[,]/g, '，')
+                .replace(/[.]/g, '。')
+                .replace(/[!]/g, '！')
+                .replace(/[?]/g, '？')
+                .replace(/[;]/g, '；')
+                .replace(/[:]/g, '：');
+        }
+
+        // 智能添加标点符号
+        function addSmartPunctuation(text) {
+            let result = text;
+            
+            // 应用标点规则
+            voiceConfig.punctuationRules.forEach(rule => {
+                if (rule.pattern.test(result)) {
+                    // 在匹配位置后添加标点
+                    result = result.replace(rule.pattern, match => {
+                        // 检查是否已经有标点
+                        if (/[，。！？；：、]$/.test(match)) {
+                            return match;
+                        }
+                        return match + rule.suffix;
+                    });
+                }
+            });
+            
+            // 如果文本没有结尾标点，根据内容智能添加
+            if (!/[。！？；]$/.test(result)) {
+                // 检查是否是问句
+                if (/^(什么|怎么|为什么|哪里|谁|多少|几|是否|能不能|可不可以|有没有)/.test(result) || 
+                    /(吗|呢|吧|什么|怎么|为什么|哪里|谁|多少|几)$/.test(result)) {
+                    result += '？';
+                } else if (/^(首先|其次|然后|接着|最后|总之|综上所述|所以|因此)/.test(result)) {
+                    result += '，';
+                } else {
+                    result += '。';
+                }
+            }
+            
+            return result;
+        }
+
+        // 同音字纠错
+        function correctHomophones(text) {
+            let result = text;
+            const corrections = voiceConfig.homophoneCorrection;
+            
+            // 简单的上下文感知纠错
+            Object.keys(corrections).forEach(correct => {
+                const wrongChars = corrections[correct];
+                wrongChars.forEach(wrong => {
+                    // 使用简单的规则进行纠错
+                    // 注意：这里使用简单的字符串替换，实际应用中可能需要更复杂的NLP技术
+                    const pattern = new RegExp(wrong, 'g');
+                    result = result.replace(pattern, correct);
+                });
+            });
+            
+            return result;
+        }
+
+        // 语义优化和分段
+        function optimizeSemantics(text) {
+            let result = text;
+            
+            // 1. 识别并优化列举结构
+            result = optimizeListStructure(result);
+            
+            // 2. 优化逻辑连接词
+            result = optimizeConnectors(result);
+            
+            // 3. 自动分段（如果文本较长）
+            result = autoSegment(result);
+            
+            return result;
+        }
+
+        // 优化列举结构
+        function optimizeListStructure(text) {
+            // 识别数字列举并优化格式
+            let result = text;
+            
+            // 将"第一"、"第二"等转换为更规范的格式
+            result = result.replace(/(第一|首先)[，、\s]*/g, '第一，');
+            result = result.replace(/(第二|其次)[，、\s]*/g, '第二，');
+            result = result.replace(/(第三|再次)[，、\s]*/g, '第三，');
+            result = result.replace(/(第四|最后)[，、\s]*/g, '第四，');
+            
+            // 识别"一是...二是..."结构
+            result = result.replace(/(一是|第一点是)[，、\s]*/g, '一是');
+            result = result.replace(/(二是|第二点是)[，、\s]*/g, '二是');
+            result = result.replace(/(三是|第三点是)[，、\s]*/g, '三是');
+            
+            return result;
+        }
+
+        // 优化逻辑连接词
+        function optimizeConnectors(text) {
+            let result = text;
+            
+            // 优化常见逻辑连接词的标点
+            const connectors = [
+                { pattern: /因为[，、\s]*/g, replacement: '因为' },
+                { pattern: /所以[，、\s]*/g, replacement: '，所以' },
+                { pattern: /但是[，、\s]*/g, replacement: '，但是' },
+                { pattern: /而且[，、\s]*/g, replacement: '，而且' },
+                { pattern: /不过[，、\s]*/g, replacement: '，不过' },
+                { pattern: /然后[，、\s]*/g, replacement: '，然后' },
+                { pattern: /接着[，、\s]*/g, replacement: '，接着' },
+                { pattern: /另外[，、\s]*/g, replacement: '。另外' },
+                { pattern: /此外[，、\s]*/g, replacement: '。此外' },
+                { pattern: /总之[，、\s]*/g, replacement: '。总之' },
+                { pattern: /综上所述[，、\s]*/g, replacement: '。综上所述' }
+            ];
+            
+            connectors.forEach(({ pattern, replacement }) => {
+                result = result.replace(pattern, replacement);
+            });
+            
+            return result;
+        }
+
+        // 自动分段
+        function autoSegment(text) {
+            // 如果文本较短，不需要分段
+            if (text.length < voiceConfig.minSegmentLength) {
+                return text;
+            }
+            
+            let result = text;
+            
+            // 在特定标点符号后添加换行（如果后面还有足够的内容）
+            voiceConfig.segmentPunctuation.forEach(punct => {
+                const regex = new RegExp(`${punct}(.{20,})`, 'g');
+                result = result.replace(regex, `${punct}\n$1`);
+            });
+            
+            // 在列举项后添加换行
+            result = result.replace(/(第一[，、].*?)[。！？]/g, '$1。\n');
+            result = result.replace(/(第二[，、].*?)[。！？]/g, '$1。\n');
+            result = result.replace(/(第三[，、].*?)[。！？]/g, '$1。\n');
+            
+            return result;
+        }
+
+        // 重置静音检测定时器
+        function resetSilenceTimer() {
+            if (voiceState.silenceTimer) {
+                clearTimeout(voiceState.silenceTimer);
+            }
+            
+            voiceState.silenceTimer = setTimeout(() => {
+                // 静音超时，自动停止录音
+                if (voiceState.isRecording) {
+                    showToast('🎤 检测到静音，已自动停止录音');
+                    stopVoiceRecording();
+                }
+            }, voiceConfig.silenceTimeout);
+        }
+
+        // 加载配置
+        function loadConfig() {
+            const saved = localStorage.getItem('interview_assistant_config');
+            if (saved) {
+                const config = JSON.parse(saved);
+                state.apiProvider = config.apiProvider || 'mock';
+                state.apiKey = config.apiKey || '';
+                state.apiEndpoint = config.apiEndpoint || '';
+                elements.apiProvider.value = state.apiProvider;
+                elements.apiKey.value = state.apiKey;
+                elements.apiEndpoint.value = state.apiEndpoint;
+                updateEndpointVisibility();
+            }
+        }
+
+        // 加载历史记录
+        function loadHistory() {
+            const saved = localStorage.getItem('interview_assistant_history');
+            if (saved) {
+                try {
+                    state.history = JSON.parse(saved);
+                } catch (e) {
+                    console.error('Failed to load history:', e);
+                    state.history = [];
+                }
+            }
+        }
+
+        // 保存历史记录
+        function saveHistory() {
+            localStorage.setItem('interview_assistant_history', JSON.stringify(state.history));
+        }
+
+        // 添加历史记录
+        function addHistory(record) {
+            const newRecord = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                type: record.type || 'text',
+                position: record.position || '',
+                question: record.question || '',
+                answer: record.answer || '',
+                totalScore: record.totalScore || 0,
+                satisfaction: record.satisfaction || 0
+            };
+            state.history.unshift(newRecord);
+            if (state.history.length > 50) {
+                state.history = state.history.slice(0, 50);
+            }
+            saveHistory();
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const config = {
+                apiProvider: elements.apiProvider.value,
+                apiKey: elements.apiKey.value,
+                apiEndpoint: elements.apiEndpoint.value
+            };
+            localStorage.setItem('interview_assistant_config', JSON.stringify(config));
+            state.apiProvider = config.apiProvider;
+            state.apiKey = config.apiKey;
+            state.apiEndpoint = config.apiEndpoint;
+            showToast('配置已保存');
+            elements.configModal.classList.remove('show');
+        }
+
+        // 更新API地址输入框可见性
+        function updateEndpointVisibility() {
+            const show = elements.apiProvider.value === 'compatible';
+            elements.apiEndpointGroup.style.display = show ? 'block' : 'none';
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            // 模式切换
+            elements.modeTabs.forEach(tab => {
+                tab.addEventListener('click', () => switchMode(tab.dataset.mode));
+            });
+
+            // 文本模式按钮
+            elements.analyzeBtn.addEventListener('click', analyzeText);
+            elements.clearBtn.addEventListener('click', clearTextInputs);
+
+            // 语音输入按钮
+            if (elements.voiceQuestionBtn) {
+                elements.voiceQuestionBtn.addEventListener('click', () => {
+                    toggleVoiceRecording(elements.question, elements.voiceQuestionBtn);
+                });
+            }
+            if (elements.voiceAnswerBtn) {
+                elements.voiceAnswerBtn.addEventListener('click', () => {
+                    toggleVoiceRecording(elements.answer, elements.voiceAnswerBtn);
+                });
+            }
+
+            // 多媒体模式
+            elements.fileUpload.addEventListener('click', () => elements.fileInput.click());
+            elements.fileUpload.addEventListener('dragover', handleDragOver);
+            elements.fileUpload.addEventListener('dragleave', handleDragLeave);
+            elements.fileUpload.addEventListener('drop', handleDrop);
+            elements.fileInput.addEventListener('change', handleFileSelect);
+            elements.removeFile.addEventListener('click', removeFile);
+            elements.processBtn.addEventListener('click', processMediaFile);
+            elements.clearMediaBtn.addEventListener('click', clearMediaInputs);
+
+            // 配置弹窗
+            elements.configBtn.addEventListener('click', () => elements.configModal.classList.add('show'));
+            elements.modalClose.addEventListener('click', () => elements.configModal.classList.remove('show'));
+            elements.configModal.addEventListener('click', (e) => {
+                if (e.target === elements.configModal) elements.configModal.classList.remove('show');
+            });
+            elements.saveConfig.addEventListener('click', saveConfig);
+            elements.apiProvider.addEventListener('change', updateEndpointVisibility);
+
+            // 历史记录
+            elements.historyBtn.addEventListener('click', showHistory);
+            elements.historyClose.addEventListener('click', () => elements.historyModal.classList.remove('show'));
+            elements.historyModal.addEventListener('click', (e) => {
+                if (e.target === elements.historyModal) elements.historyModal.classList.remove('show');
+            });
+            elements.clearHistory.addEventListener('click', clearHistory);
+            elements.exportHistory.addEventListener('click', exportHistory);
+        }
+
+        // 模式切换
+        function switchMode(mode) {
+            state.mode = mode;
+            elements.modeTabs.forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.mode === mode);
+            });
+            elements.textMode.classList.toggle('active', mode === 'text');
+            elements.mediaMode.classList.toggle('active', mode === 'media');
+        }
+
+        // 显示Toast
+        function showToast(message) {
+            elements.toast.textContent = message;
+            elements.toast.classList.add('show');
+            setTimeout(() => elements.toast.classList.remove('show'), 3000);
+        }
+
+        // 显示加载
+        function showLoading() {
+            elements.loading.classList.add('show');
+        }
+
+        // 隐藏加载
+        function hideLoading() {
+            elements.loading.classList.remove('show');
+        }
+
+        // 清空文本输入
+        function clearTextInputs() {
+            elements.position.value = '';
+            elements.question.value = '';
+            elements.answer.value = '';
+            elements.textResults.classList.remove('show');
+            elements.textResults.innerHTML = '';
+        }
+
+        // 文本分析
+        async function analyzeText() {
+            const position = elements.position.value.trim();
+            const question = elements.question.value.trim();
+            const answer = elements.answer.value.trim();
+
+            if (!position || !question || !answer) {
+                showToast('请填写完整的岗位、题目和回答内容');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                let result;
+                const useMock = state.apiProvider === 'mock' || !state.apiKey ||
+                    (state.apiProvider === 'compatible' && !state.apiEndpoint);
+                if (useMock) {
+                    result = await mockAnalyze(position, question, answer);
+                } else {
+                    result = await realAnalyze(position, question, answer);
+                }
+                displayTextResults(result);
+            } catch (error) {
+                showToast('分析失败，请重试');
+                console.error(error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 五维智能诊断分析
+        async function mockAnalyze(position, question, answer) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            const diagnostics = analyzeFiveDimensions(question, answer, position);
+            const coreProblems = analyzeCoreProblems(question, answer, diagnostics);
+            const rewrittenAnswer = generateRewrittenAnswer(question, answer, diagnostics);
+            const followUps = generateSmartFollowUps(question, answer, diagnostics, position);
+
+            const totalScore = Math.round(
+                diagnostics.relevance * 0.25 +
+                diagnostics.logic * 0.25 +
+                diagnostics.casePower * 0.25 +
+                diagnostics.expression * 0.15 +
+                diagnostics.satisfaction * 0.10
+            );
+
+            return {
+                position,
+                question,
+                answer,
+                totalScore,
+                diagnostics,
+                coreProblems,
+                rewrittenAnswer,
+                followUps
+            };
+        }
+
+        // 五维智能诊断
+        function analyzeFiveDimensions(question, answer, position) {
+            const lowerQ = question.toLowerCase();
+            const lowerA = answer.toLowerCase();
+            const len = answer.length;
+
+            const relevance = analyzeRelevance(lowerQ, lowerA, len);
+            const logic = analyzeLogic(lowerA, len);
+            const casePower = analyzeCasePower(lowerA);
+            const expression = analyzeExpression(lowerA);
+            const satisfaction = analyzeSatisfaction(relevance, logic, casePower, expression);
+
+            return {
+                relevance,
+                logic,
+                casePower,
+                expression,
+                satisfaction
+            };
+        }
+
+        // 1. 切题度分析
+        function analyzeRelevance(lowerQ, lowerA, len) {
+            let score = 70;
+
+            const questionKeywords = extractKeywords(lowerQ);
+            const answerKeywords = extractKeywords(lowerA);
+            const matchCount = questionKeywords.filter(k => answerKeywords.includes(k)).length;
+            const matchRate = questionKeywords.length > 0 ? matchCount / questionKeywords.length : 0;
+
+            score += matchRate * 20;
+
+            const irrelevantWords = ['但是', '不过', '其实', '话说回来', '另外'];
+            const hasIrrelevant = irrelevantWords.some(w => lowerA.includes(w));
+            if (hasIrrelevant && matchRate < 0.3) score -= 15;
+
+            const questionTypes = [
+                { pattern: /项目|经历|经验/, has: lowerA.includes('项目') || lowerA.includes('开发') || lowerA.includes('工作') },
+                { pattern: /优势|优点|长处/, has: lowerA.includes('优势') || lowerA.includes('优点') || lowerA.includes('擅长') },
+                { pattern: /劣势|缺点|不足/, has: lowerA.includes('劣势') || lowerA.includes('缺点') || lowerA.includes('不足') },
+                { pattern: /为什么|原因|动机/, has: lowerA.includes('因为') || lowerA.includes('所以') || lowerA.includes('为了') },
+                { pattern: /薪资|工资|待遇|薪酬/, has: lowerA.includes('薪资') || lowerA.includes('工资') || lowerA.includes('待遇') }
+            ];
+
+            const currentQType = questionTypes.find(q => q.pattern.test(lowerQ));
+            if (currentQType && !currentQType.has) {
+                score -= 10;
+            }
+
+            if (len < 20) score -= 20;
+            else if (len > 30) score += 10;
+
+            return Math.min(100, Math.max(0, Math.round(score)));
+        }
+
+        // 2. 逻辑结构分析
+        function analyzeLogic(lowerA, len) {
+            let score = 60;
+
+            const hasSTAR = /第一[^,，]*,[^,，]*[，,][^,，]*[，,][^,，]*[。.]/.test(lowerA) ||
+                           /首先[^,，]*[，,][^,，]*[，,][^,，]*[。.]/.test(lowerA) ||
+                           (lowerA.includes('情境') && lowerA.includes('任务') && lowerA.includes('行动') && lowerA.includes('结果'));
+            if (hasSTAR) score += 20;
+
+            const hasPREP = (lowerA.includes('我认为') || lowerA.includes('我觉得')) &&
+                           (lowerA.includes('因为') || lowerA.includes('由于')) &&
+                           (lowerA.includes('例如') || lowerA.includes('比如'));
+            if (hasPREP) score += 15;
+
+            const structureWords = ['第一', '第二', '第三', '首先', '其次', '最后', '一方面', '另一方面'];
+            const structureCount = structureWords.filter(w => lowerA.includes(w)).length;
+            score += structureCount * 8;
+
+            const connectorWords = ['因为', '所以', '因此', '然而', '但是', '不过', '而且', '并且'];
+            const connectorCount = connectorWords.filter(w => lowerA.includes(w)).length;
+            score += connectorCount * 5;
+
+            if (len < 30) score -= 15;
+            else if (len > 100) score += 10;
+
+            return Math.min(100, Math.max(0, Math.round(score)));
+        }
+
+        // 3. 案例说服力分析
+        function analyzeCasePower(lowerA) {
+            let score = 50;
+
+            const actionVerbs = ['负责', '主导', '完成', '实现', '提升', '优化', '改进', '推动', '带领', '协调', '解决', '开发', '设计', '创建'];
+            const actionCount = actionVerbs.filter(v => lowerA.includes(v)).length;
+            score += actionCount * 10;
+
+            const quantifiers = [/\d+[%％]/, /\d+[倍]/, /\d+[人]/, /\d+[个]/, /提升\d+/, /增加\d+/, /减少\d+/];
+            const hasQuantifier = quantifiers.some(r => r.test(lowerA));
+            if (hasQuantifier) score += 20;
+
+            const numbers = lowerA.match(/\d+/g);
+            if (numbers && numbers.length > 0) {
+                const hasBigNumber = numbers.some(n => parseInt(n) > 10);
+                if (hasBigNumber) score += 10;
+            }
+
+            const softWords = ['不错', '还好', '还可以', '比较好', '挺好的'];
+            const hasSoft = softWords.some(w => lowerA.includes(w));
+            if (hasSoft) score -= 15;
+
+            const resultWords = ['成果', '结果', '效果', '业绩', '成绩', '贡献', '价值'];
+            const hasResult = resultWords.some(w => lowerA.includes(w));
+            if (hasResult) score += 10;
+
+            return Math.min(100, Math.max(0, Math.round(score)));
+        }
+
+        // 4. 表达质量评估
+        function analyzeExpression(lowerA) {
+            let score = 80;
+
+            const fillerWords = ['呃', '嗯', '那个', '这个', '然后', '就是', '的话', '其实', '大概', '可能'];
+            let fillerCount = 0;
+            fillerWords.forEach(w => {
+                const regex = new RegExp(w, 'g');
+                const matches = lowerA.match(regex);
+                if (matches) fillerCount += matches.length;
+            });
+
+            const fillerRate = fillerCount / (lowerA.length / 4);
+            if (fillerRate > 0.15) score -= 30;
+            else if (fillerRate > 0.1) score -= 15;
+            else if (fillerRate < 0.05) score += 15;
+
+            const sentenceCount = (lowerA.match(/[。.!?]/g) || []).length;
+            const avgSentenceLen = sentenceCount > 0 ? lowerA.length / sentenceCount : lowerA.length;
+            if (avgSentenceLen > 100) score -= 10;
+            else if (avgSentenceLen > 50) score += 5;
+
+            const politeWords = ['谢谢', '感谢', '请', '麻烦'];
+            const hasPolite = politeWords.some(w => lowerA.includes(w));
+            if (hasPolite) score += 10;
+
+            const repetitionPatterns = [/(.)\1{2,}/g, /(.+)\1{2,}/g];
+            const hasRepetition = repetitionPatterns.some(p => p.test(lowerA));
+            if (hasRepetition) score -= 10;
+
+            return Math.min(100, Math.max(0, Math.round(score)));
+        }
+
+        // 5. 满意度预估
+        function analyzeSatisfaction(relevance, logic, casePower, expression) {
+            const weighted = relevance * 0.35 + logic * 0.25 + casePower * 0.25 + expression * 0.15;
+            return Math.min(100, Math.max(0, Math.round(weighted)));
+        }
+
+        // 提取关键词
+        function extractKeywords(text) {
+            const stopWords = ['的', '是', '在', '和', '了', '有', '我', '你', '他', '她', '它', '这', '那', '个', '与', '对', '为', '上', '下', '中', '大', '小', '多', '少', '一个', '什么', '怎么', '如何', '为什么', '因为', '所以', '但是', '如果'];
+            const words = text.split(/[\s,，、。.!?:;]/).filter(w => w.length > 1 && !stopWords.includes(w));
+            return [...new Set(words)];
+        }
+
+        // 分析核心问题
+        function analyzeCoreProblems(question, answer, diagnostics) {
+            const problems = [];
+            const lowerA = answer.toLowerCase();
+            const len = answer.length;
+
+            if (diagnostics.relevance < 60) {
+                problems.push({
+                    type: 'fatal',
+                    title: '⚠️ 切题度不足：回答偏离问题核心',
+                    desc: '你的回答没有精准回应面试官的提问，可能让面试官觉得你理解能力有问题或没有认真听题。建议先明确面试官的问题意图，再针对性地回答。',
+                    suggestion: '在回答前先在心里重复一遍问题，确认理解正确后再开口。回答时紧扣问题的关键词。'
+                });
+            }
+
+            if (diagnostics.logic < 50) {
+                problems.push({
+                    type: 'fatal',
+                    title: '⚠️ 逻辑结构混乱：缺乏清晰框架',
+                    desc: '你的回答像在"流水账"，面试官很难快速抓住重点。好的回答应该有清晰的逻辑框架，如STAR法则或PREP结构。',
+                    suggestion: '建议使用"首先、其次、最后"或"第一、第二、第三"来组织答案，或者按STAR法则（情境-任务-行动-结果）来讲述案例。'
+                });
+            }
+
+            if (diagnostics.casePower < 50) {
+                problems.push({
+                    type: 'fatal',
+                    title: '⚠️ 案例说服力不足：缺乏量化结果',
+                    desc: '你的回答比较空洞，没有具体数据和成果支撑。面试官希望看到的是你实际做了什么、带来了什么价值，而不是泛泛而谈。',
+                    suggestion: '用具体数字来支撑你的回答，如"提升了30%的性能"、"管理了5人团队"、"为公司节省了10万元成本"等。'
+                });
+            }
+
+            if (diagnostics.expression < 50) {
+                problems.push({
+                    type: 'warning',
+                    title: '🔶 表达质量待提升：存在较多口头禅',
+                    desc: '回答中使用了较多口头禅（如"然后"、"那个"、"呃"等），会影响表达的专业感和流畅度。',
+                    suggestion: '放慢语速，有意识地减少口头禅的使用。可以在练习时有意识地停顿代替口头禅。'
+                });
+            }
+
+            if (len < 30) {
+                problems.push({
+                    type: 'fatal',
+                    title: '⚠️ 回答过于简短：信息量不足',
+                    desc: '面试官提问通常是希望你展开回答，过短的回应会让面试官觉得你不想沟通或没有相关经验可分享。',
+                    suggestion: '每个问题至少用3-5句话来回答，包含"观点+理由+案例/证据"的完整结构。'
+                });
+            }
+
+            if (!lowerA.includes('我') && !lowerA.includes('本人') && !lowerA.includes('自己')) {
+                problems.push({
+                    type: 'warning',
+                    title: '🔶 缺少个人视角：以旁观者角度陈述',
+                    desc: '整段回答没有出现"我"这个人称代词，面试官无法了解你在其中的具体作用和贡献。',
+                    suggestion: '多使用"我主导了..."、"我负责..."、"我通过..."等句式，突出个人贡献。'
+                });
+            }
+
+            if (diagnostics.logic >= 70 && diagnostics.casePower >= 70 && diagnostics.expression >= 70) {
+                problems.push({
+                    type: 'good',
+                    title: '✅ 回答质量优秀：继续保持',
+                    desc: '你的回答在逻辑结构、案例支撑和表达流畅度上都表现良好，已经达到较高水准。',
+                    suggestion: '注意细节把控和面试礼仪，进一步提升成功率。'
+                });
+            }
+
+            return problems;
+        }
+
+        // 生成黄金重写建议 - 基于用户真实回答
+        function generateRewrittenAnswer(question, answer, diagnostics) {
+            const lowerQ = question.toLowerCase();
+            const lowerA = answer.toLowerCase();
+            const answerTrim = answer.trim();
+
+            let rewritten = '';
+            let structure = '';
+
+            if (lowerQ.includes('项目') || lowerQ.includes('经历') || lowerQ.includes('经验')) {
+                structure = 'STAR法则';
+                rewritten = generateSTARRewrite(answerTrim, question);
+            } else if (lowerQ.includes('优势') || lowerQ.includes('优点') || lowerQ.includes('长处')) {
+                structure = 'PREP结构';
+                rewritten = generatePREPRewrite(answerTrim, question);
+            } else if (lowerQ.includes('劣势') || lowerQ.includes('缺点') || lowerQ.includes('不足')) {
+                structure = '转化法则';
+                rewritten = generateWeaknessRewrite(answerTrim, question);
+            } else if (lowerQ.includes('为什么') && lowerQ.includes('选择')) {
+                structure = '三层利益法';
+                rewritten = generateWhyChooseRewrite(answerTrim, question);
+            } else {
+                structure = '总-分-总结构';
+                rewritten = generateGeneralRewrite(answerTrim, question);
+            }
+
+            return {
+                structure,
+                content: rewritten
+            };
+        }
+
+        // 生成STAR结构重写
+        function generateSTARRewrite(answer, question) {
+            return `**STAR结构分析与优化**
+
+## 你的回答分析
+
+**优势**：
+• 包含了基本的情境和任务描述
+• 提到了具体的行动措施
+• 有一定的结果描述
+
+**改进空间**：
+• 情境描述不够具体，缺乏背景信息
+• 任务目标不够明确，缺少挑战和难点
+• 行动步骤不够详细，缺乏具体的技术或方法
+• 结果描述不够量化，缺少具体的数据和影响
+
+## 优化建议
+
+**情境 (S)**：
+- 增加具体的时间、地点、背景信息
+- 描述当时面临的具体挑战和困难
+- 说明任务的重要性和影响
+
+**任务 (T)**：
+- 明确任务的具体目标和要求
+- 说明任务的难度和挑战
+- 强调你在任务中的角色和责任
+
+**行动 (A)**：
+- 详细描述你的具体行动步骤
+- 说明你采用的方法和技术
+- 突出你的决策过程和解决问题的能力
+- 体现团队协作和沟通能力
+
+**结果 (R)**：
+- 使用具体的数据和指标来量化成果
+- 说明结果对团队和公司的影响
+- 强调你的贡献和价值
+
+## 优化后的回答
+
+${generateImprovedSTAR(answer)}
+
+## 面试技巧提示
+
+• **强动词开头**：使用"主导"、"负责"、"推动"等强动词开头，展现你的主动性和领导力
+• **量化成果**：用具体数字来展示你的成就，如"提升了30%"、"节省了20万元"等
+• **结构清晰**：每个部分之间要有明确的逻辑连接，让面试官易于理解
+• **突出价值**：强调你的行动为公司带来的具体价值和影响
+`;
+        }
+
+        // 生成改进的STAR回答
+        function generateImprovedSTAR(answer) {
+            const sentences = answer.split(/[。.!?]/).filter(s => s.trim());
+            let improved = '';
+
+            // 提取关键信息
+            const situation = extractSituation(answer) || '一个重要的项目中';
+            const task = extractTask(answer) || '核心开发任务';
+            const action = extractAction(answer) || '采用了有效的技术方案';
+            const result = extractResult(answer) || '取得了显著成果';
+
+            // 构建更具体的STAR结构
+            improved = `**情境 (S)**：在${situation}，面临着时间紧、任务重的挑战。`;
+            improved += `\n\n**任务 (T)**：作为${task}的负责人，我需要确保项目按时交付并达到预期质量标准。`;
+            improved += `\n\n**行动 (A)**：${action}，具体包括：\n`;
+            
+            // 增加具体行动步骤
+            if (sentences.length > 2) {
+                for (let i = 2; i < Math.min(sentences.length, 5); i++) {
+                    improved += `• ${sentences[i].trim()}\n`;
+                }
+            } else {
+                improved += `• 制定详细的项目计划和时间线\n`;
+                improved += `• 与团队成员密切协作，解决技术难题\n`;
+                improved += `• 定期与 stakeholders 沟通，及时调整方向\n`;
+            }
+            
+            improved += `\n**结果 (R)**：最终${result}。`;
+
+            // 增加量化成果和具体影响
+            if (!/\d+/.test(improved)) {
+                const metrics = [
+                    '项目提前2周完成，节省了15%的开发成本',
+                    '系统性能提升40%，用户满意度提高25%',
+                    '代码质量显著提升，bug率降低60%',
+                    '团队效率提升30%，交付速度加快40%'
+                ];
+                const randomMetric = metrics[Math.floor(Math.random() * metrics.length)];
+                improved += ` ${randomMetric}。`;
+            }
+
+            // 增加反思和学习
+            improved += `\n\n**反思与学习**：通过这次经历，我深刻体会到项目规划和团队协作的重要性，同时也积累了处理复杂问题的宝贵经验。`;
+
+            return improved;
+        }
+
+        // 生成PREP结构重写
+        function generatePREPRewrite(answer, question) {
+            return `**PREP结构分析与优化**
+
+## 你的回答分析
+
+**优势**：
+• 表达了基本的观点和理由
+• 尝试用证据支持自己的观点
+• 有一定的逻辑性
+
+**改进空间**：
+• 观点不够明确和具体
+• 理由不够充分和详细
+• 证据不够具体和有说服力
+• 总结不够有力和针对性
+
+## 优化建议
+
+**观点 (P)**：
+- 明确表达你的核心优势或观点
+- 结合岗位需求，突出与岗位相关的能力
+- 简洁明了，让面试官快速抓住重点
+
+**理由 (R)**：
+- 详细说明支持你观点的理由
+- 从多个角度阐述你的优势
+- 展示你的专业知识和经验
+
+**证据 (E)**：
+- 用具体的案例和数据来支持你的理由
+- 描述你在过去工作中的具体成就
+- 突出你的贡献和价值
+
+**总结 (P)**：
+- 强调你的优势与岗位的匹配度
+- 表达你对未来工作的信心
+- 简洁有力地收尾
+
+## 优化后的回答
+
+${generateImprovedPREP(answer, question)}
+
+## 面试技巧提示
+
+• **观点明确**：一开始就明确表达你的核心观点，让面试官快速了解你的立场
+• **理由充分**：提供多个理由支持你的观点，展示你的思考深度
+• **证据具体**：用具体的案例和数据来支持你的理由，增加说服力
+• **总结有力**：最后强调你的优势与岗位的匹配度，给面试官留下深刻印象
+• **结合岗位**：所有回答都要围绕岗位需求展开，展示你对岗位的理解
+`;
+        }
+
+        // 生成改进的PREP回答
+        function generateImprovedPREP(answer, question) {
+            const keyPoints = answer.split(/[,，;；]/).filter(p => p.trim());
+            let improved = '';
+
+            // 提取关键信息
+            const view = extractView(answer) || '我具有较强的技术能力和团队协作能力';
+            const reason = extractReason(answer) || '我拥有扎实的专业知识和丰富的项目经验';
+            const evidence = extractEvidence(answer) || '在之前的项目中取得了显著成果';
+
+            // 构建更具体的PREP结构
+            improved = `**观点 (P)**：${view}，这是我能够胜任该岗位的核心优势。`;
+            improved += `\n\n**理由 (R)**：${reason}，具体来说：\n`;
+            
+            // 增加具体理由
+            if (keyPoints.length > 1) {
+                for (let i = 1; i < Math.min(keyPoints.length, 4); i++) {
+                    improved += `• ${keyPoints[i].trim()}\n`;
+                }
+            } else {
+                improved += `• 拥有5年以上相关领域工作经验\n`;
+                improved += `• 熟悉行业最新技术和发展趋势\n`;
+                improved += `• 具备良好的问题解决能力和学习能力\n`;
+            }
+            
+            improved += `\n**证据 (E)**：${evidence}，例如：\n`;
+            
+            // 增加具体证据
+            if (keyPoints.length > 2) {
+                improved += `• ${keyPoints[2].trim()}\n`;
+                if (keyPoints.length > 3) {
+                    improved += `• ${keyPoints[3].trim()}\n`;
+                }
+            } else {
+                const examples = [
+                    '主导完成了公司核心系统的重构，性能提升40%',
+                    '带领团队在3个月内完成了一个复杂项目的开发和部署',
+                    '解决了一个困扰团队已久的技术难题，提高了开发效率',
+                    '获得了公司年度最佳员工称号，得到了领导和同事的认可'
+                ];
+                const randomExample = examples[Math.floor(Math.random() * examples.length)];
+                improved += `• ${randomExample}\n`;
+            }
+            
+            improved += `\n**总结 (P)**：我相信这些优势能够帮助我在${question.match(/岗位|职位|工作/) ? '这个岗位' : '工作中'}发挥更大的价值，为团队做出积极贡献。`;
+
+            // 增加与岗位的匹配度分析
+            improved += `\n\n**岗位匹配分析**：基于对该岗位的理解，我的优势与岗位需求高度契合，特别是在技术能力、团队协作和问题解决方面，能够快速适应新环境并为公司创造价值。`;
+
+            return improved;
+        }
+
+        // 生成劣势转化重写
+        function generateWeaknessRewrite(answer, question) {
+            return `**劣势转化分析与优化**
+
+## 你的回答分析
+
+**优势**：
+• 能够坦诚面对自己的不足
+• 表达了改进的意愿
+• 尝试展示改进的成果
+
+**改进空间**：
+• 劣势描述不够具体，缺乏具体表现
+• 改进措施不够详细，缺乏可操作性
+• 改进成果不够量化，缺乏具体证据
+• 没有将劣势转化为潜在优势
+
+## 优化建议
+
+**选择合适的劣势**：
+- 选择"可改善"的劣势，而不是核心能力缺失
+- 避免提及与岗位核心要求相冲突的劣势
+- 选择与岗位要求不直接相关的劣势
+
+**具体描述劣势**：
+- 详细说明劣势的具体表现
+- 描述劣势在工作中的具体影响
+- 展示你对劣势的清醒认识
+
+**详细说明改进措施**：
+- 提供具体的改进方法和步骤
+- 说明你采取的具体行动
+- 展示你学习和成长的过程
+
+**量化改进成果**：
+- 用具体的数据和事实来展示改进的效果
+- 说明改进对工作的积极影响
+- 展示你从改进中获得的收获
+
+**转化为优势**：
+- 说明如何将劣势转化为潜在优势
+- 展示你从劣势中学习到的经验
+- 强调改进过程培养的新能力
+
+## 优化后的回答
+
+${generateImprovedWeakness(answer)}
+
+## 面试技巧提示
+
+• **坦诚真实**：诚实地面对自己的不足，展示你的自我认知能力
+• **积极态度**：重点强调你的改进意愿和行动，展示你的成长能力
+• **具体详细**：用具体的例子和数据来支持你的回答，增加说服力
+• **转化思维**：展示你如何将劣势转化为优势，展示你的解决问题能力
+• **匹配岗位**：确保你的劣势不会影响你胜任目标岗位的能力
+`;
+        }
+
+        // 生成改进的劣势回答
+        function generateImprovedWeakness(answer) {
+            const parts = answer.split(/[,，;；]/).filter(p => p.trim());
+            let improved = '';
+
+            // 提取关键信息
+            const weakness = extractWeakness(answer) || '有时候会过于追求完美和细节';
+            const improvement = extractImprovement(answer) || '我正在学习时间管理和优先级设置';
+            const improvementResult = extractImprovementResult(answer) || '已经取得了明显的进步';
+
+            // 构建更具体的劣势转化回答
+            improved = `**真实劣势**：我的一个需要改进的方面是${weakness}。`;
+            improved += `\n\n**具体表现**：在工作中，我有时会花费过多时间在细节上，导致项目进度受到影响，特别是在时间紧张的情况下。`;
+            improved += `\n\n**改进措施**：${improvement}，具体包括：\n`;
+            
+            // 增加具体改进措施
+            if (parts.length > 1) {
+                for (let i = 1; i < Math.min(parts.length, 4); i++) {
+                    improved += `• ${parts[i].trim()}\n`;
+                }
+            } else {
+                improved += `• 使用时间管理工具，设置任务截止时间\n`;
+                improved += `• 学习优先级排序方法，区分重要和紧急的任务\n`;
+                improved += `• 定期与团队沟通，获取反馈，调整工作方式\n`;
+            }
+            
+            improved += `\n**改进效果**：${improvementResult}。`;
+            
+            // 增加具体成果
+            if (!/\d+/.test(improved)) {
+                const results = [
+                    '现在能够在保证质量的同时，将项目交付时间缩短20%',
+                    '团队成员反馈我的工作效率明显提高，协作更加顺畅',
+                    '成功完成了多个时间紧迫的项目，得到了领导的认可',
+                    '学会了在适当的时候寻求帮助，避免了独自钻牛角尖的情况'
+                ];
+                const randomResult = results[Math.floor(Math.random() * results.length)];
+                improved += ` ${randomResult}。`;
+            }
+            
+            improved += `\n\n**转化为优势**：通过这个改进过程，我不仅提高了工作效率，还培养了更好的时间管理和优先级设置能力，这对未来的工作会有很大帮助。`;
+
+            return improved;
+        }
+
+        // 生成为什么选择重写
+        function generateWhyChooseRewrite(answer, question) {
+            return `**为什么选择分析与优化**
+
+## 你的回答分析
+
+**优势**：
+• 表达了对公司的兴趣
+• 尝试从多个角度说明选择理由
+• 有一定的逻辑性
+
+**改进空间**：
+• 理由不够具体，缺乏对公司的深入了解
+• 没有展示对岗位的理解
+• 个人成长与公司发展结合不够紧密
+• 缺乏具体的调研和了解
+
+## 优化建议
+
+**行业与公司层面**：
+- 展示你对公司所在行业的了解
+- 具体说明公司的优势和特色
+- 提及公司的具体产品、服务或成就
+- 展示你对公司文化和价值观的认同
+
+**团队与文化层面**：
+- 表达你对团队氛围和协作方式的向往
+- 提及你了解到的团队特点
+- 说明你如何适应和融入团队
+
+**个人成长层面**：
+- 具体说明岗位与你的职业规划的契合度
+- 表达你希望在公司获得的成长和发展
+- 说明你能为公司带来的价值
+
+**岗位理解层面**：
+- 展示你对岗位职责的理解
+- 说明你的技能和经验如何匹配岗位需求
+- 表达你对岗位挑战的期待
+
+## 优化后的回答
+
+${generateImprovedWhyChoose(answer, question)}
+
+## 面试技巧提示
+
+• **做足功课**：提前了解公司的产品、服务、文化和价值观，展示你的诚意
+• **具体详细**：用具体的例子和细节来支持你的回答，增加说服力
+• **双向匹配**：不仅说明公司能给你什么，还要说明你能给公司带来什么
+• **真诚表达**：避免过于功利的理由，真诚表达你的兴趣和动机
+• **结合自身**：将公司的特点与你的个人背景和职业规划结合起来
+`;
+        }
+
+        // 生成改进的为什么选择回答
+        function generateImprovedWhyChoose(answer, question) {
+            const reasons = answer.split(/[,，;；]/).filter(r => r.trim());
+            let improved = '';
+
+            // 提取关键信息
+            const companyReason = extractCompanyReason(answer) || '贵公司在行业内的领先地位和创新精神';
+            const teamReason = extractTeamReason(answer) || '团队的专业能力和协作氛围';
+            const personalReason = extractPersonalReason(answer) || '与我的职业规划高度契合';
+
+            // 构建更具体的为什么选择回答
+            improved = `**行业与公司层面**：我选择贵公司首先是因为${companyReason}。`;
+            improved += `\n\n具体来说，我一直关注贵公司的发展，特别是在[具体业务领域]方面的创新成果，贵公司的市场地位和技术实力让我非常向往。`;
+            improved += `\n\n**团队与文化层面**：其次，${teamReason}。`;
+            
+            // 增加团队文化相关内容
+            if (reasons.length > 1) {
+                improved += ` ${reasons[1].trim()}。`;
+            } else {
+                improved += ` 我了解到贵公司注重团队协作，鼓励创新，并且重视员工的个人成长和发展，这样的工作环境非常适合我。`;
+            }
+            
+            improved += `\n\n**个人成长层面**：最后，${personalReason}。`;
+            
+            // 增加个人规划相关内容
+            if (reasons.length > 2) {
+                improved += ` ${reasons[2].trim()}。`;
+            } else {
+                improved += ` 这个岗位正好符合我的职业发展方向，我希望在[具体领域]方面不断提升自己，而贵公司能够提供这样的机会和平台。`;
+            }
+            
+            // 增加对岗位的理解
+            improved += `\n\n**岗位理解**：通过对岗位描述的分析，我认为这个职位需要具备[具体技能]等能力，而我在这些方面都有相关经验和优势。`;
+            
+            // 增加未来贡献
+            improved += `\n\n**未来贡献**：如果能够加入贵公司，我希望能够利用自己的专业知识和经验，为团队带来新的思路和方法，共同推动公司的发展。`;
+
+            return improved;
+        }
+
+        // 生成通用重写
+        function generateGeneralRewrite(answer, question) {
+            return `**通用问题分析与优化**
+
+## 你的回答分析
+
+**优势**：
+• 表达了基本的观点
+• 尝试从多个角度分析问题
+• 有一定的逻辑性
+
+**改进空间**：
+• 观点不够明确和具体
+• 分析不够深入和全面
+• 缺乏具体的案例和数据支持
+• 结构不够清晰和有条理
+• 没有提供具体的行动建议
+
+## 优化建议
+
+**总起（核心观点）**：
+- 一开始就明确表达你的核心观点
+- 简洁明了，让面试官快速抓住重点
+- 结合问题的具体情境，展示你的理解
+
+**分述（具体分析）**：
+- 从多个角度进行深入分析
+- 每个角度都要有具体的内容和支撑
+- 展示你的思考深度和广度
+- 结合具体的案例和数据
+
+**深入分析**：
+- 挖掘问题的本质和根本原因
+- 分析问题的影响和意义
+- 展示你的洞察力和分析能力
+
+**行动建议**：
+- 基于分析结果，提供具体的行动建议
+- 建议要具有可操作性和实用性
+- 展示你的解决问题能力
+
+**总结（升华收尾）**：
+- 总结你的核心观点和主要分析
+- 强调你的结论和建议
+- 简洁有力地收尾
+
+## 优化后的回答
+
+${generateImprovedGeneral(answer, question)}
+
+## 面试技巧提示
+
+• **结论先行**：一开始就明确表达你的核心观点，让面试官快速了解你的立场
+• **结构清晰**：使用清晰的结构和逻辑，让面试官易于理解
+• **多角度分析**：从多个角度进行分析，展示你的思考深度和广度
+• **具体详细**：用具体的例子和数据来支持你的分析，增加说服力
+• **提供建议**：基于分析结果，提供具体的行动建议，展示你的解决问题能力
+• **简洁有力**：保持回答简洁有力，避免冗长和重复
+`;
+        }
+
+        // 生成改进的通用回答
+        function generateImprovedGeneral(answer, question) {
+            const points = answer.split(/[。.!?]/).filter(p => p.trim());
+            let improved = '';
+
+            // 构建更具体的总-分-总结构
+            if (points.length > 0) {
+                improved = `**总起（核心观点）**：对于这个问题，我的观点是${points[0].trim()}。`;
+            } else {
+                improved = `**总起（核心观点）**：对于这个问题，我认为需要从多个角度进行综合分析。`;
+            }
+            
+            improved += `\n\n**分述（具体分析）**：\n`;
+            
+            // 增加具体分析角度
+            if (points.length > 1) {
+                for (let i = 1; i < Math.min(points.length, 5); i++) {
+                    improved += `**角度${i}**：${points[i].trim()}\n\n`;
+                }
+            } else {
+                // 提供一些通用的分析角度
+                const angles = [
+                    '**技术角度**：从技术实现的角度来看，需要考虑可行性、性能和维护性等因素',
+                    '**业务角度**：从业务需求的角度来看，需要考虑用户体验、市场需求和商业价值',
+                    '**团队角度**：从团队协作的角度来看，需要考虑沟通成本、技能匹配和工作分配',
+                    '**风险角度**：从风险控制的角度来看，需要考虑可能的风险和应对措施'
+                ];
+                for (const angle of angles) {
+                    improved += `${angle}\n\n`;
+                }
+            }
+            
+            // 增加深入分析
+            improved += `**深入分析**：这个问题的本质是[问题本质分析]，需要我们[具体应对策略]。`;
+            
+            improved += `\n\n**总结（升华收尾）**：总的来说，我认为这是一个需要认真对待的问题，需要根据具体情况进行分析和处理。通过综合考虑各个方面的因素，我们可以找到一个平衡的解决方案。`;
+
+            // 增加行动建议
+            improved += `\n\n**行动建议**：基于以上分析，我建议采取以下行动：\n`;
+            improved += `• 首先，[具体行动1]\n`;
+            improved += `• 其次，[具体行动2]\n`;
+            improved += `• 最后，[具体行动3]\n`;
+
+            return improved;
+        }
+
+        // 提取观点
+        function extractView(text) {
+            const patterns = [
+                /我认为(.+?)/,
+                /我觉得(.+?)/,
+                /我的优势是(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取理由
+        function extractReason(text) {
+            const patterns = [
+                /因为(.+?)/,
+                /由于(.+?)/,
+                /是因为(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取证据
+        function extractEvidence(text) {
+            const patterns = [
+                /例如(.+?)/,
+                /比如(.+?)/,
+                /例如，(.+?)/,
+                /比如，(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 80);
+            }
+            return '';
+        }
+
+        // 提取劣势
+        function extractWeakness(text) {
+            const patterns = [
+                /我的缺点是(.+?)/,
+                /我的劣势是(.+?)/,
+                /我不足的地方是(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取改进措施
+        function extractImprovement(text) {
+            const patterns = [
+                /我正在(.+?)/,
+                /我已经(.+?)/,
+                /我会(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取改进结果
+        function extractImprovementResult(text) {
+            const patterns = [
+                /现在(.+?)/,
+                /已经(.+?)/,
+                /效果(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取公司原因
+        function extractCompanyReason(text) {
+            const patterns = [
+                /公司(.+?)/,
+                /贵司(.+?)/,
+                /贵公司(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取团队原因
+        function extractTeamReason(text) {
+            const patterns = [
+                /团队(.+?)/,
+                /同事(.+?)/,
+                /氛围(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取个人原因
+        function extractPersonalReason(text) {
+            const patterns = [
+                /我(.+?)/,
+                /个人(.+?)/,
+                /职业(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 提取STAR各部分
+        function extractSituation(text) {
+            const patterns = [
+                /在(.+?)中/,
+                /(.+?)期间/,
+                /曾经(.+?)/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        function extractTask(text) {
+            const patterns = [
+                /负责(.+?)[，,]/,
+                /承担(.+?)[，,]/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        function extractAction(text) {
+            const verbs = ['完成', '实现', '开发', '设计', '优化', '改进', '提升', '推动'];
+            for (const v of verbs) {
+                if (text.includes(v)) {
+                    const idx = text.indexOf(v);
+                    return text.substring(Math.max(0, idx - 20), Math.min(text.length, idx + 40));
+                }
+            }
+            return '';
+        }
+
+        function extractResult(text) {
+            const patterns = [
+                /提升了(.+?)[。.]/,
+                /完成了(.+?)[。.]/,
+                /实现了(.+?)[。.]/
+            ];
+            for (const p of patterns) {
+                const m = text.match(p);
+                if (m) return m[1].substring(0, 50);
+            }
+            return '';
+        }
+
+        // 生成智能追问 - 基于题目和回答的深度关联
+        function generateSmartFollowUps(question, answer, diagnostics, position) {
+            const followUps = [];
+            
+            // 提取回答中的关键信息
+            const extractedInfo = extractAnswerKeyInfo(question, answer);
+            
+            // 基于提取的信息生成深度关联的追问
+            const deepFollowUps = generateDeepFollowUps(question, answer, extractedInfo, diagnostics, position);
+            
+            // 基于回答质量生成改进型追问
+            const qualityFollowUps = generateQualityBasedFollowUps(question, answer, diagnostics, extractedInfo);
+            
+            // 合并所有追问并按优先级排序
+            const allFollowUps = [...deepFollowUps, ...qualityFollowUps];
+            
+            // 去重并限制数量
+            const uniqueFollowUps = removeDuplicateFollowUps(allFollowUps);
+            
+            return uniqueFollowUps.slice(0, 3);
+        }
+
+        // 提取回答中的关键信息
+        function extractAnswerKeyInfo(question, answer) {
+            const info = {
+                mentionedProjects: [],
+                mentionedTechnologies: [],
+                mentionedMetrics: [],
+                mentionedChallenges: [],
+                mentionedSolutions: [],
+                mentionedRoles: [],
+                mentionedTeams: [],
+                mentionedResults: [],
+                vagueAreas: [],
+                highlightAreas: []
+            };
+            
+            // 提取项目名称
+            const projectPatterns = [
+                /([\u4e00-\u9fa5]{2,10}(?:项目|系统|平台|产品))/g,
+                /负责(?:了)?([\u4e00-\u9fa5]{2,8}(?:项目|系统))/g,
+                /参与(?:了)?([\u4e00-\u9fa5]{2,8}(?:项目|系统))/g
+            ];
+            projectPatterns.forEach(pattern => {
+                const matches = answer.match(pattern);
+                if (matches) {
+                    info.mentionedProjects.push(...matches.map(m => m.replace(/负责(?:了)?|参与(?:了)?/, '')));
+                }
+            });
+            
+            // 提取技术栈
+            const techPatterns = [
+                /(React|Vue|Angular|Node\.js|Python|Java|Go|Rust|TypeScript|JavaScript|CSS|HTML|MySQL|Redis|MongoDB|Docker|K8s|Kubernetes|AWS|阿里云|腾讯云)/gi,
+                /(微服务|分布式|高并发|大数据|人工智能|机器学习|深度学习|区块链|物联网)/g
+            ];
+            techPatterns.forEach(pattern => {
+                const matches = answer.match(pattern);
+                if (matches) {
+                    info.mentionedTechnologies.push(...matches);
+                }
+            });
+            
+            // 提取量化指标
+            const metricPatterns = [
+                /(\d+(?:\.\d+)?[%％倍个万人天月年])/g,
+                /(提升|提高|增加|增长|减少|降低|优化|缩短)了?(\d+(?:\.\d+)?)/g
+            ];
+            metricPatterns.forEach(pattern => {
+                const matches = answer.match(pattern);
+                if (matches) {
+                    info.mentionedMetrics.push(...matches);
+                }
+            });
+            
+            // 提取遇到的挑战
+            const challengePatterns = [
+                /(遇到|面临|遭遇)(?:了)?(.+?)(?:问题|挑战|困难|瓶颈|痛点)/g,
+                /(问题|挑战|困难)(?:是|在于)(.+?)[。，]/g
+            ];
+            challengePatterns.forEach(pattern => {
+                const matches = [...answer.matchAll(pattern)];
+                matches.forEach(match => {
+                    const challenge = match[2] || match[1];
+                    if (challenge && challenge.length > 3) {
+                        info.mentionedChallenges.push(challenge.trim());
+                    }
+                });
+            });
+            
+            // 提取解决方案
+            const solutionPatterns = [
+                /(通过|采用|使用|运用|借助)(.+?)(?:来|去)?(?:解决|处理|应对|优化|改进)/g,
+                /(解决方案|解决办法|处理方式)(?:是|为)(.+?)[。，]/g
+            ];
+            solutionPatterns.forEach(pattern => {
+                const matches = [...answer.matchAll(pattern)];
+                matches.forEach(match => {
+                    const solution = match[2];
+                    if (solution && solution.length > 3) {
+                        info.mentionedSolutions.push(solution.trim());
+                    }
+                });
+            });
+            
+            // 提取角色
+            const rolePatterns = [
+                /(担任|作为|角色是)(.+?)(?:负责|主导|参与|带领)/g,
+                /(负责人|主导者|参与者|核心成员|组长|组长|技术负责人|产品经理|项目经理)/g
+            ];
+            rolePatterns.forEach(pattern => {
+                const matches = [...answer.matchAll(pattern)];
+                matches.forEach(match => {
+                    const role = match[2] || match[1];
+                    if (role) {
+                        info.mentionedRoles.push(role.trim());
+                    }
+                });
+            });
+            
+            // 识别模糊区域（描述不够具体的地方）
+            const vaguePatterns = [
+                /(等等|之类|一些|某些|部分|相关|相应|适当|合理|有效|一定|比较|相对)(?:的)?/g,
+                /(等|等等)[。，]/g
+            ];
+            vaguePatterns.forEach(pattern => {
+                const matches = [...answer.matchAll(pattern)];
+                matches.forEach(match => {
+                    const context = answer.substring(Math.max(0, match.index - 20), match.index + 20);
+                    info.vagueAreas.push(context.trim());
+                });
+            });
+            
+            // 识别亮点区域（有数据支撑的地方）
+            if (info.mentionedMetrics.length > 0) {
+                info.highlightAreas.push('有量化数据支撑');
+            }
+            if (info.mentionedTechnologies.length > 0) {
+                info.highlightAreas.push('技术栈清晰');
+            }
+            
+            return info;
+        }
+
+        // 生成深度关联的追问
+        function generateDeepFollowUps(question, answer, extractedInfo, diagnostics, position) {
+            const followUps = [];
+            const lowerQ = question.toLowerCase();
+            
+            // 1. 基于提到的项目追问
+            if (extractedInfo.mentionedProjects.length > 0) {
+                const project = extractedInfo.mentionedProjects[0];
+                followUps.push({
+                    question: `你提到的"${project}"，能详细说说这个项目的业务背景是什么？解决了什么核心问题？`,
+                    focus: '考察候选人对项目背景的理解深度和业务敏感度',
+                    priority: 10
+                });
+                
+                if (extractedInfo.mentionedRoles.length > 0) {
+                    const role = extractedInfo.mentionedRoles[0];
+                    followUps.push({
+                        question: `在"${project}"中你作为${role}，具体负责哪些模块或功能？能举一个你主导的关键决策吗？`,
+                        focus: '考察候选人的职责边界和决策能力',
+                        priority: 9
+                    });
+                }
+            }
+            
+            // 2. 基于提到的技术栈追问
+            if (extractedInfo.mentionedTechnologies.length > 0) {
+                const tech = extractedInfo.mentionedTechnologies[0];
+                followUps.push({
+                    question: `你提到了${tech}，为什么选择这个技术方案？有没有对比过其他技术选型？`,
+                    focus: '考察候选人的技术选型和架构设计能力',
+                    priority: 8
+                });
+                
+                if (extractedInfo.mentionedTechnologies.length > 2) {
+                    followUps.push({
+                        question: `你提到了${extractedInfo.mentionedTechnologies.slice(0, 3).join('、')}等技术，这些技术在你的项目中是如何协同工作的？`,
+                        focus: '考察候选人的技术整合和系统架构能力',
+                        priority: 7
+                    });
+                }
+            }
+            
+            // 3. 基于提到的挑战追问
+            if (extractedInfo.mentionedChallenges.length > 0) {
+                const challenge = extractedInfo.mentionedChallenges[0];
+                followUps.push({
+                    question: `你提到了"${challenge}"这个挑战，当时有没有其他的解决方案？为什么最终选择了现在的方案？`,
+                    focus: '考察候选人的问题分析和方案评估能力',
+                    priority: 9
+                });
+                
+                if (extractedInfo.mentionedSolutions.length > 0) {
+                    const solution = extractedInfo.mentionedSolutions[0];
+                    followUps.push({
+                        question: `针对"${challenge}"，你采用了"${solution}"的方案，实际效果如何？有没有遇到预期之外的问题？`,
+                        focus: '考察候选人的方案执行和风险管理能力',
+                        priority: 8
+                    });
+                }
+            }
+            
+            // 4. 基于量化指标追问
+            if (extractedInfo.mentionedMetrics.length > 0) {
+                const metric = extractedInfo.mentionedMetrics[0];
+                followUps.push({
+                    question: `你提到的"${metric}"这个指标，数据是如何统计的？统计口径是什么？`,
+                    focus: '考察候选人的数据敏感性和严谨性',
+                    priority: 8
+                });
+                
+                followUps.push({
+                    question: `除了${metric}，还关注了哪些核心指标？这些指标之间有什么关联？`,
+                    focus: '考察候选人的全局观和指标体系构建能力',
+                    priority: 7
+                });
+            }
+            
+            // 5. 基于模糊区域追问
+            if (extractedInfo.vagueAreas.length > 0) {
+                followUps.push({
+                    question: `你刚才提到了一些相对概括的内容，能具体展开说说吗？比如具体是什么场景、什么数据？`,
+                    focus: '考察候选人的细节把握和深入思考能力',
+                    priority: 6
+                });
+            }
+            
+            // 6. 基于岗位匹配度追问
+            if (position) {
+                followUps.push({
+                    question: `你刚才分享的经验，对于${position}这个岗位来说，你觉得哪些能力是最相关的？为什么？`,
+                    focus: '考察候选人的岗位理解和自我认知能力',
+                    priority: 7
+                });
+            }
+            
+            // 7. 基于回答的逻辑性追问
+            if (diagnostics.logic < 60) {
+                followUps.push({
+                    question: `如果让你用STAR法则（情境-任务-行动-结果）重新组织刚才的回答，你会怎么说？`,
+                    focus: '考察候选人的结构化表达能力',
+                    priority: 8
+                });
+            }
+            
+            // 8. 基于案例说服力追问
+            if (diagnostics.casePower < 60) {
+                followUps.push({
+                    question: `你刚才提到的案例，如果让你补充更多的细节和数据，你会补充什么？`,
+                    focus: '考察候选人的案例深度和细节把控能力',
+                    priority: 7
+                });
+            }
+            
+            return followUps;
+        }
+
+        // 基于回答质量生成改进型追问
+        function generateQualityBasedFollowUps(question, answer, diagnostics, extractedInfo) {
+            const followUps = [];
+            
+            // 1. 如果缺少量化数据
+            if (extractedInfo.mentionedMetrics.length === 0 && answer.length > 50) {
+                followUps.push({
+                    question: `你刚才的回答比较定性，如果让你用数据来支撑你的观点，你会用什么数据？`,
+                    focus: '考察候选人的数据思维和结果导向',
+                    priority: 6
+                });
+            }
+            
+            // 2. 如果缺少技术细节
+            if (extractedInfo.mentionedTechnologies.length === 0 && answer.length > 50) {
+                followUps.push({
+                    question: `从技术实现的角度，能说说你采用了什么技术方案？遇到了什么技术难点？`,
+                    focus: '考察候选人的技术深度和问题解决能力',
+                    priority: 6
+                });
+            }
+            
+            // 3. 如果回答较短
+            if (answer.length < 100) {
+                followUps.push({
+                    question: `能再详细展开说说吗？比如具体的场景、你的思考过程、以及最终的结果？`,
+                    focus: '考察候选人的表达能力和思维深度',
+                    priority: 7
+                });
+            }
+            
+            // 4. 通用深度追问
+            followUps.push({
+                question: `如果让你重新做一次，你觉得哪些地方可以做得更好？为什么？`,
+                focus: '考察候选人的复盘能力和成长思维',
+                priority: 5
+            });
+            
+            followUps.push({
+                question: `在这个过程中，你学到的最重要的东西是什么？对你后续的工作有什么影响？`,
+                focus: '考察候选人的学习能力和经验沉淀能力',
+                priority: 5
+            });
+            
+            return followUps;
+        }
+
+        // 去重并排序追问
+        function removeDuplicateFollowUps(followUps) {
+            const seen = new Set();
+            const unique = [];
+            
+            // 按优先级排序
+            followUps.sort((a, b) => b.priority - a.priority);
+            
+            followUps.forEach(item => {
+                // 提取问题的核心内容用于去重
+                const core = item.question.replace(/[""][^""]+[""]/g, '').substring(0, 30);
+                if (!seen.has(core)) {
+                    seen.add(core);
+                    unique.push(item);
+                }
+            });
+            
+            return unique;
+        }
+
+        // 真实API分析
+        async function realAnalyze(position, question, answer) {
+            const prompt = `请分析以下面试回答的质量。
+
+目标岗位：${position}
+面试问题：${question}
+应聘者回答：${answer}
+
+请从以下角度分析：
+1. 回答质量评分（1-10分）
+2. 回答的优点
+3. 存在的问题
+4. 改进建议
+5. 可能的追问问题（3-4个）
+
+请以JSON格式返回结果，包含字段：score, strengths(数组), weaknesses(数组), suggestions(数组), followUps(数组)`;
+
+            let endpoint = 'https://api.openai.com/v1/chat/completions';
+            let model = 'gpt-3.5-turbo';
+
+            if (state.apiProvider === 'compatible') {
+                endpoint = state.apiEndpoint || endpoint;
+                model = 'gpt-3.5-turbo';
+            } else if (state.apiProvider === 'claude') {
+                endpoint = 'https://api.anthropic.com/v1/messages';
+                model = 'claude-3-haiku-20240307';
+            }
+
+            if (state.apiProvider === 'claude') {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': state.apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        max_tokens: 1024,
+                        messages: [{ role: 'user', content: prompt }]
+                    })
+                });
+
+                const data = await response.json();
+                const content = data.content[0].text;
+                return parseClaudeResponse(content);
+            } else {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: 'user', content: prompt }]
+                    })
+                });
+
+                const data = await response.json();
+                return JSON.parse(data.choices[0].message.content);
+            }
+        }
+
+        // 解析Claude响应
+        function parseClaudeResponse(content) {
+            try {
+                return JSON.parse(content);
+            } catch {
+                const scoreMatch = content.match(/评分[：:]\s*(\d+)/);
+                const score = scoreMatch ? parseInt(scoreMatch[1]) : 6;
+
+                return {
+                    score: score,
+                    strengths: ['回答结构清晰'],
+                    weaknesses: ['建议进一步完善'],
+                    suggestions: ['可以添加更多具体案例'],
+                    followUps: ['能详细说说吗？', '有什么具体的例子吗？']
+                };
+            }
+        }
+
+        // 展示文本结果 - 新版五维诊断
+        function displayTextResults(result) {
+            const { totalScore, diagnostics, coreProblems, rewrittenAnswer, followUps, position, question, answer } = result;
+
+            const satisfactionPercent = diagnostics.satisfaction;
+
+            elements.textResults.innerHTML = `
+                <div class="score-display">
+                    <div class="score-number">${totalScore}</div>
+                    <div>
+                        <div class="score-label">分</div>
+                        <div style="font-size:0.9rem;opacity:0.9;">综合诊断评分</div>
+                    </div>
+                    <div style="margin-left:auto;text-align:right;">
+                        <div style="font-size:1.5rem;font-weight:bold;">${satisfactionPercent}%</div>
+                        <div style="font-size:0.85rem;opacity:0.9;">面试官满意度</div>
+                    </div>
+                </div>
+
+                <h3 style="margin:25px 0 15px;color:#1F2937;">📊 五维智能诊断</h3>
+                <div class="result-section">
+                    <div style="display:grid;gap:12px;">
+                        <div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                                <span>🎯 切题度</span>
+                                <span style="font-weight:bold;color:${diagnostics.relevance >= 70 ? '#10B981' : diagnostics.relevance >= 50 ? '#F59E0B' : '#EF4444'};">${diagnostics.relevance}%</span>
+                            </div>
+                            <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${diagnostics.relevance}%;background:${diagnostics.relevance >= 70 ? '#10B981' : diagnostics.relevance >= 50 ? '#F59E0B' : '#EF4444'};border-radius:4px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                                <span>🧠 逻辑结构</span>
+                                <span style="font-weight:bold;color:${diagnostics.logic >= 70 ? '#10B981' : diagnostics.logic >= 50 ? '#F59E0B' : '#EF4444'};">${diagnostics.logic}%</span>
+                            </div>
+                            <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${diagnostics.logic}%;background:${diagnostics.logic >= 70 ? '#10B981' : diagnostics.logic >= 50 ? '#F59E0B' : '#EF4444'};border-radius:4px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                                <span>💪 案例说服力</span>
+                                <span style="font-weight:bold;color:${diagnostics.casePower >= 70 ? '#10B981' : diagnostics.casePower >= 50 ? '#F59E0B' : '#EF4444'};">${diagnostics.casePower}%</span>
+                            </div>
+                            <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${diagnostics.casePower}%;background:${diagnostics.casePower >= 70 ? '#10B981' : diagnostics.casePower >= 50 ? '#F59E0B' : '#EF4444'};border-radius:4px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                                <span>🗣️ 表达质量</span>
+                                <span style="font-weight:bold;color:${diagnostics.expression >= 70 ? '#10B981' : diagnostics.expression >= 50 ? '#F59E0B' : '#EF4444'};">${diagnostics.expression}%</span>
+                            </div>
+                            <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${diagnostics.expression}%;background:${diagnostics.expression >= 70 ? '#10B981' : diagnostics.expression >= 50 ? '#F59E0B' : '#EF4444'};border-radius:4px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                                <span>😊 综合满意度</span>
+                                <span style="font-weight:bold;color:${diagnostics.satisfaction >= 70 ? '#10B981' : diagnostics.satisfaction >= 50 ? '#F59E0B' : '#EF4444'};">${diagnostics.satisfaction}%</span>
+                            </div>
+                            <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                                <div style="height:100%;width:${diagnostics.satisfaction}%;background:${diagnostics.satisfaction >= 70 ? '#10B981' : diagnostics.satisfaction >= 50 ? '#F59E0B' : '#EF4444'};border-radius:4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin:25px 0 15px;color:#1F2937;">📋 核心问题清单</h3>
+                ${coreProblems.map(p => `
+                    <div class="result-section ${p.type === 'fatal' ? 'bad' : p.type === 'warning' ? 'warning' : 'good'}">
+                        <h4>${p.title}</h4>
+                        <p style="margin:8px 0;">${p.desc}</p>
+                        <p style="margin:8px 0;color:#4F46E5;font-weight:600;">💡 ${p.suggestion}</p>
+                    </div>
+                `).join('')}
+
+                <h3 style="margin:25px 0 15px;color:#1F2937;">✨ 黄金重写建议（推荐结构：${rewrittenAnswer.structure}）</h3>
+                <div class="result-section" style="background:#fff0f5;border-left-color:#ff6b9d;">
+                    <pre style="white-space:pre-wrap;font-family:inherit;line-height:1.8;margin:0;">${rewrittenAnswer.content}</pre>
+                </div>
+
+                <h3 style="margin:25px 0 15px;color:#1F2937;">🔮 预判式追问</h3>
+                <div class="result-section follow-up-questions">
+                    <p style="margin-bottom:15px;color:#ff6b9d;">基于你刚才的回答，面试官极大概率会继续追问以下几个问题：</p>
+                    ${followUps.map((item, i) => `
+                        <div class="question-item" style="margin-bottom:15px;">
+                            <div style="font-weight:bold;color:#1F2937;margin-bottom:8px;">
+                                <span style="color:#ff6b9d;">追问${i+1}：</span>${item.question}
+                            </div>
+                            <div style="font-size:0.9rem;color:#6b7280;background:#fff0f5;padding:8px 12px;border-radius:6px;border-left:3px solid #ff6b9d;">
+                                <strong>考察点：</strong>${item.focus}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="margin-top:20px;padding:15px;background:#fff0f5;border-radius:8px;text-align:center;">
+                    <p style="color:#ff6b9d;margin:0;">💡 提示：点击下方按钮可将分析结果保存到本地</p>
+                    <button class="btn btn-secondary" onclick="copyResults()" style="margin-top:10px;">📋 复制分析结果</button>
+                </div>
+            `;
+
+            elements.textResults.classList.add('show');
+            elements.textResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // 保存到历史记录
+            addHistory({
+                type: 'text',
+                position,
+                question,
+                answer,
+                totalScore,
+                satisfaction: diagnostics.satisfaction
+            });
+        }
+
+        // 复制结果
+        function copyResults() {
+            const results = elements.textResults.innerText;
+            navigator.clipboard.writeText(results).then(() => {
+                showToast('分析结果已复制到剪贴板');
+            }).catch(() => {
+                showToast('复制失败，请手动选择复制');
+            });
+        }
+
+        // 拖拽处理
+        function handleDragOver(e) {
+            e.preventDefault();
+            elements.fileUpload.style.borderColor = '#4F46E5';
+            elements.fileUpload.style.background = '#f0f9ff';
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            elements.fileUpload.style.borderColor = '#d1d5db';
+            elements.fileUpload.style.background = '#f9fafb';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            elements.fileUpload.style.borderColor = '#d1d5db';
+            elements.fileUpload.style.background = '#f9fafb';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        // 文件选择
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        // 处理文件
+        function handleFile(file) {
+            const validTypes = ['audio/mpeg', 'audio/wav', 'audio/m4a', 'video/mp4', 'video/quicktime', 'video/webm'];
+            const validExtensions = ['.mp3', '.wav', '.m4a', '.mp4', '.mov', '.webm'];
+            const ext = '.' + file.name.split('.').pop().toLowerCase();
+
+            if (!validExtensions.includes(ext)) {
+                showToast('请上传音频或视频文件（MP3, WAV, M4A, MP4, MOV, WEBM）');
+                return;
+            }
+
+            state.uploadedFile = file;
+
+            const isVideo = ext === '.mp4' || ext === '.mov' || ext === '.webm';
+            elements.fileIcon.textContent = isVideo ? '🎬' : '🎵';
+            elements.fileName.textContent = file.name;
+            elements.fileSize.textContent = formatFileSize(file.size);
+
+            elements.fileUpload.classList.add('has-file');
+            elements.fileInfo.classList.add('show');
+            elements.processBtn.disabled = false;
+
+            showToast('文件上传成功，点击"开始分析"');
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // 移除文件
+        function removeFile() {
+            state.uploadedFile = null;
+            elements.fileInput.value = '';
+            elements.fileUpload.classList.remove('has-file');
+            elements.fileInfo.classList.remove('show');
+            elements.processBtn.disabled = true;
+        }
+
+        // 清空多媒体输入
+        function clearMediaInputs() {
+            elements.mediaPosition.value = '';
+            removeFile();
+            elements.mediaResults.classList.remove('show');
+            elements.mediaResults.innerHTML = '';
+        }
+
+        // 处理多媒体文件
+        async function processMediaFile() {
+            if (!state.uploadedFile) {
+                showToast('请先上传面试文件');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                const position = elements.mediaPosition.value.trim() || '未知岗位';
+                const mockResults = generateMediaMockResults(position);
+
+                displayMediaResults(mockResults);
+            } catch (error) {
+                showToast('处理失败，请重试');
+                console.error(error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 生成模拟多媒体分析结果
+        function generateMediaMockResults(position) {
+            const questions = [
+                {
+                    question: '请简单介绍一下你自己',
+                    answer: '我是XXX，有3年前端开发经验。主要使用React和Vue框架，开发过多个电商和后台管理系统项目。',
+                    score: 7,
+                    strengths: ['条理清晰，介绍了工作经验', '提到了具体技术栈'],
+                    weaknesses: ['缺少个人亮点展示', '没有结合应聘岗位展开'],
+                    suggestion: '建议结合应聘岗位需求，突出与岗位最匹配的经验'
+                },
+                {
+                    question: '你为什么想要应聘这个岗位？',
+                    answer: '我对前端开发很感兴趣，也一直在关注贵公司的产品，觉得在这里可以学到很多东西。',
+                    score: 6,
+                    strengths: ['表达了兴趣和热情'],
+                    weaknesses: ['回答不够具体', '没有说明自己能为公司带来什么价值'],
+                    suggestion: '建议从行业前景、团队技术实力、个人职业规划等角度展开'
+                },
+                {
+                    question: '你在项目中遇到的最大挑战是什么？',
+                    answer: '嗯...我想想...',
+                    score: 4,
+                    strengths: [],
+                    weaknesses: ['思考时间过长', '回答内容不够充实', '没有给出具体案例'],
+                    suggestion: '建议提前准备好项目案例，用STAR法则组织回答'
+                }
+            ];
+
+            const avgScore = Math.round(questions.reduce((sum, q) => sum + q.score, 0) / questions.length);
+
+            return {
+                position,
+                avgScore,
+                questions,
+                overall: {
+                    strengths: [
+                        '整体表达比较流畅，态度端正',
+                        '技术基础扎实，有实际项目经验'
+                    ],
+                    weaknesses: [
+                        '回答缺乏深度，案例不够具体',
+                        '对某些问题的回答不够自信'
+                    ],
+                    suggestions: [
+                        '建议多使用STAR法则组织项目经验的描述',
+                        '提前准备更多具体案例和数据支撑',
+                        '注意语速和表达的自信度'
+                    ]
+                }
+            };
+        }
+
+        // 展示多媒体结果
+        function displayMediaResults(results) {
+            let html = `
+                <div class="score-display">
+                    <div class="score-number">${results.avgScore}</div>
+                    <div>
+                        <div class="score-label">分</div>
+                        <div style="font-size:0.9rem;opacity:0.9;">整体面试评分</div>
+                    </div>
+                </div>
+
+                <h3 style="margin:20px 0 15px;color:#1F2937;">📋 问题分析</h3>
+            `;
+
+            results.questions.forEach((item, index) => {
+                const scoreClass = item.score >= 7 ? 'good' : (item.score >= 5 ? 'warning' : 'bad');
+                html += `
+                    <div class="result-section" style="margin-bottom:20px;">
+                        <h4>问题${index + 1}：${item.question}</h4>
+                        <p style="margin:10px 0;"><strong>你的回答：</strong>${item.answer}</p>
+                        <p style="margin:10px 0;"><strong>评分：</strong><span style="color:${scoreClass === 'good' ? '#10B981' : scoreClass === 'warning' ? '#F59E0B' : '#EF4444'};font-weight:bold;">${item.score}/10</span></p>
+                        ${item.strengths.length > 0 ? `<p><strong>✨ 优点：</strong>${item.strengths.join('；')}</p>` : ''}
+                        ${item.weaknesses.length > 0 ? `<p><strong>⚠️ 问题：</strong>${item.weaknesses.join('；')}</p>` : ''}
+                        ${item.suggestion ? `<p><strong>💡 建议：</strong>${item.suggestion}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="result-section good" style="margin-top:20px;">
+                    <h4>📈 整体建议</h4>
+                    ${results.overall.suggestions.map(s => `<p>• ${s}</p>`).join('')}
+                </div>
+            `;
+
+            elements.mediaResults.innerHTML = html;
+            elements.mediaResults.classList.add('show');
+            elements.mediaResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 清空历史记录
+        function clearHistory() {
+            if (confirm('确定要清空所有历史记录吗？此操作不可恢复。')) {
+                state.history = [];
+                saveHistory();
+                showHistory();
+                showToast('历史记录已清空');
+            }
+        }
+
+        // 导出历史记录
+        function exportHistory() {
+            if (state.history.length === 0) {
+                showToast('暂无历史记录可导出');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(state.history, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `面试复盘历史_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('历史记录已导出');
+        }
+
+        // 显示历史记录
+        function showHistory() {
+            elements.historyList.innerHTML = '';
+            
+            if (state.history.length === 0) {
+                elements.historyList.innerHTML = `
+                    <div style="text-align:center;padding:40px;color:#6b7280;">
+                        <div style="font-size:3rem;margin-bottom:10px;">📋</div>
+                        <div>暂无历史记录</div>
+                        <div style="font-size:0.85rem;margin-top:5px;">完成分析后会自动保存记录</div>
+                    </div>
+                `;
+            } else {
+                state.history.forEach(record => {
+                    const date = new Date(record.timestamp).toLocaleString('zh-CN');
+                    const scoreClass = record.totalScore >= 70 ? 'good' : (record.totalScore >= 50 ? 'warning' : 'bad');
+                    
+                    const historyItem = document.createElement('div');
+                    historyItem.style.cssText = `
+                        background: white;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin-bottom: 10px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    `;
+                    
+                    historyItem.onmouseenter = function() {
+                        this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                    };
+                    
+                    historyItem.onmouseleave = function() {
+                        this.style.boxShadow = 'none';
+                    };
+                    
+                    historyItem.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                            <div style="font-weight:600;color:#1F2937;">${record.position || '未指定岗位'}</div>
+                            <div style="font-size:0.85rem;color:#6b7280;">${date}</div>
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <strong>问题：</strong>
+                            <span style="color:#4b5563;">${record.question || '无'}</span>
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <strong>回答：</strong>
+                            <span style="color:#4b5563;">${record.answer ? record.answer.substring(0, 100) + (record.answer.length > 100 ? '...' : '') : '无'}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div style="color:${scoreClass === 'good' ? '#10B981' : scoreClass === 'warning' ? '#F59E0B' : '#EF4444'};">
+                                评分：<strong>${record.totalScore || 0}</strong>
+                            </div>
+                            <div style="font-size:0.85rem;color:#6b7280;">
+                                满意度：${record.satisfaction || 0}%
+                            </div>
+                        </div>
+                    `;
+                    
+                    historyItem.addEventListener('click', () => {
+                        // 点击历史记录，填充到输入框
+                        if (record.type === 'text') {
+                            switchMode('text');
+                            elements.position.value = record.position || '';
+                            elements.question.value = record.question || '';
+                            elements.answer.value = record.answer || '';
+                            elements.textResults.classList.remove('show');
+                        }
+                        elements.historyModal.classList.remove('show');
+                        showToast('已加载历史记录');
+                    });
+                    
+                    elements.historyList.appendChild(historyItem);
+                });
+            }
+            
+            elements.historyModal.classList.add('show');
+        }
+
+        // 启动应用
+        init();
+    </script>
+</body>
+</html>

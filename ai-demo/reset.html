@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重置配置</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #4338CA;
+        }
+        .message {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>重置配置</h1>
+    <div class="message">
+        <p>点击下方按钮清理localStorage中的配置，重置为默认的模拟分析模式。</p>
+    </div>
+    <button class="btn" onclick="resetConfig()">重置配置</button>
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        function resetConfig() {
+            try {
+                localStorage.removeItem('interview_assistant_config');
+                localStorage.removeItem('interview_assistant_history');
+                document.getElementById('result').innerHTML = '<div class="message">配置已重置，现在打开index.html即可使用模拟分析模式。</div>';
+            } catch (e) {
+                document.getElementById('result').innerHTML = '<div class="message" style="background: #fef2f2; border-left-color: #ef4444;">重置失败：' + e.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>
