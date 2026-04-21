@@ -1,2 +1,2 @@
-# qinyi7171.github.io
+# qy
 秦怡个人网页
